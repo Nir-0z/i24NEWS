@@ -147,7 +147,7 @@ with col_chart:
             textposition="bottom center"
         ))
 
-        # פריסה יציבה
+# פריסה יציבה
         fig.update_layout(
             margin=dict(l=40, r=220, t=50, b=60), 
             paper_bgcolor='rgba(0,0,0,0)',
@@ -159,7 +159,6 @@ with col_chart:
                 font=dict(size=13, color="#475569")
             ),
             
-            # במקום [100, 0] קשיח, היפוך אוטומטי שמתאים את עצמו לגודל הנתונים
             xaxis=dict(
                 autorange="reversed", showgrid=True, gridcolor="#f1f5f9", side="top",
                 ticksuffix="%", tickfont=dict(size=11, color="#64748b")
@@ -170,7 +169,7 @@ with col_chart:
                 categoryorder="array",
                 categoryarray=labels[::-1], 
                 tickfont=dict(size=13, color="#0f172a"),
-                pad=15
+                tickpad=15 # <--- התוקן כאן (במקום pad)
             )
         )
         
