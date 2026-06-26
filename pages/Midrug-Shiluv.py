@@ -12,8 +12,10 @@ path = os.path.join(os.path.dirname(__file__), "השוואות.xlsx")
 df_m = pd.read_excel(path, sheet_name="מדרוג", header=None)
 df_s = pd.read_excel(path, sheet_name="שילוב", header=None)
 
+# מיפוי שאלות
 questions = {str(r[0]): i for i, r in df_s.iterrows() if "q" in str(r[0]).lower() or ":" in str(r[0])}
 
+# בניית פילטר דמוגרפיות
 cats = [str(x).strip() if pd.notna(x) else "" for x in df_s.iloc[0]]
 for i in range(1, len(cats)): 
     if not cats[i]: cats[i] = cats[i-1]
@@ -29,8 +31,11 @@ st.markdown("<h2 style='color: #0f172a; font-weight: 700; margin-bottom: 25px;'>
 with st.container(border=True):
     col_f1, col_f2, _, _ = st.columns([1.2, 1.2, 1, 1])
     wave = col_f1.selectbox("גל מחקר", ["חיבור שניהם", "גל 19 במאי", "גל 25 במאי"])
+    
+    # הגנה קשיחה על בחירת עמודת הדמוגרפיה
     if wave == "חיבור שניהם":
-        t_col = demo[col_f2.selectbox("פילוח דמוגרפי", list(demo.keys()))]
+        selected_demo = col_f2.selectbox("פילוח דמוגרפי", list(demo.keys()))
+        t_col = demo.get(selected_demo, 3) # אם לא נמצא, יחזור כברירת מחדל ל'כללי' (עמודה 3)
     else:
         t_col = 1 if wave == "גל 19 במאי" else 2
 
@@ -44,55 +49,45 @@ with col_side:
 with col_chart:
     with st.container(border=True):
         
-        # חילוץ נתונים
         labels, s_vals, m_vals = [], [], []
-        for i in range(questions[sel_q] + 1, len(df_s)):
-            row_s, row_m = df_s.iloc[i], df_m.iloc[i]
-            if pd.isna(row_s[0]) or "q" in str(row_s[0]).lower(): break
-            
-            txt = str(row_s[0]).lower().replace(" ", "")
-            if "total" in txt or "סהכ" in txt or "מדגם" in txt: continue
-            
-            labels.append(str(row_s[0]))
-            s_vals.append(pd.to_numeric(row_s[t_col], errors='coerce') or 0.0)
-            m_vals.append(pd.to_numeric(row_m[t_col], errors='coerce') or 0.0)
+        start_row = questions[sel_q] + 1
+        
+        # הגדרת גבול ריצה מקסימלי לפי הגיליון הקצר מבין השניים למניעת קריסת אינדקס
+        max_rows = min(len(df_s), len(df_m))
+        
+        for i in range(start_row, max_rows):
+            try:
+                row_s = df_s.iloc[i]
+                row_m = df_m.iloc[i]
+                
+                # עצירה אם הגענו לשאלה הבאה או לשורה ריקה לחלוטין
+                if pd.isna(row_s[0]) or "q" in str(row_s[0]).lower(): 
+                    break
+                
+                txt = str(row_s[0]).lower().replace(" ", "")
+                if "total" in txt or "סהכ" in txt or "מדגם" in txt: 
+                    continue
+                
+                # חילוץ ערכים עם המרה בטוחה למספרים
+                s_val = pd.to_numeric(row_s[t_col], errors='coerce')
+                m_val = pd.to_numeric(row_m[t_col], errors='coerce')
+                
+                # החלפת ערכי NaN באפסים בצורה בטוחה
+                s_val = float(s_val) if pd.notna(s_val) else 0.0
+                m_val = float(m_val) if pd.notna(m_val) else 0.0
+                
+                labels.append(str(row_s[0]))
+                s_vals.append(s_val)
+                m_vals.append(m_val)
+                
+            except Exception:
+                # במקרה של שורה פגומה ספציפית - דלג עליה והמשך בריצה מבלי להקריס את האפליקציה
+                continue
 
-        # הגנה מפני מערכים ריקים (מניעת ValueError)
-        if not labels:
+        # הצגת הגרף רק אם קיימים נתונים תקפים
+        if not labels or len(s_vals) == 0:
             st.info("אין נתונים כמותיים להצגה עבור שאלה זו בפילוח שנבחר.")
         else:
             fig = go.Figure()
             
-            # קווי קישור
-            for lbl, s_v, m_v in zip(labels, s_vals, m_vals):
-                if m_v > 0 or "עיקרי" not in sel_q:
-                    fig.add_trace(go.Scatter(x=[m_v, s_v], y=[lbl, lbl], mode="lines", line=dict(color="#f1f5f9", width=6), hoverinfo="skip", showlegend=False))
-
-            # סקר שילוב
-            fig.add_trace(go.Scatter(
-                x=s_vals, y=labels, mode="markers+text", name='סקר שילוב', 
-                marker=dict(color='#2563eb', size=13, line=dict(color='white', width=2)),
-                text=[f"{x:.1f}%" for x in s_vals], textfont=dict(size=11, color="#2563eb", weight="bold"), 
-                textposition="top center"
-            ))
-            
-            # ועדה למדרוג
-            fig.add_trace(go.Scatter(
-                x=m_vals, y=labels, mode="markers+text", name='הוועדה למדרוג', 
-                marker=dict(color='#f97316', size=13, line=dict(color='white', width=2)),
-                text=[f"{x:.1f}%" if x > 0 else "" for x in m_vals], textfont=dict(size=11, color="#f97316", weight="bold"), 
-                textposition="bottom center"
-            ))
-
-            # עיצוב פריסה
-            fig.update_layout(
-                margin=dict(l=40, r=220, t=40, b=60),
-                paper_bgcolor='rgba(0,0,0,0)',
-                plot_bgcolor='rgba(0,0,0,0)',
-                height=500,
-                legend=dict(orientation="h", y=-0.15, x=0.5, xanchor="center", font=dict(size=12, color="#475569")),
-                xaxis=dict(showgrid=True, gridcolor="#f1f5f9", side="top", autorange="reversed", ticksuffix="%", tickfont=dict(size=11, color="#64748b")),
-                yaxis=dict(autorange="reversed", side="right", tickfont=dict(size=12, color="#0f172a"), pad=15)
-            )
-            
-            st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
+            # קווי קישור רק
