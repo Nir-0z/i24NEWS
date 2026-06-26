@@ -1,6 +1,9 @@
 [theme]
-primaryColor = "#4f46e5"          # סגול-אינדיגו עמוק
-backgroundColor = "#f8fafc"       # רקע אפרפר-תכלת בהיר ומרגיע
-secondaryBackgroundColor = "#ffffff" # כרטיסים ותפריטים בצבע לבן בוהק לקונטרסט
-textColor = "#0f172a"             # טקסט כהה מאוד לקריאות מקסימלית
+# צבע הבסיס של המערכת (יכול להיות "light" או "dark")
+base = "light"
+
+# הצבע המוביל של המותג (כפתורים, סימונים, קווים) שיישאר זהה בשני המצבים
+primaryColor = "#2563eb"
+
+# הגופן של המערכת
 font = "sans serif"
