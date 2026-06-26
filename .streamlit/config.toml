@@ -7,3 +7,5 @@ primaryColor = "#2563eb"
 
 # הגופן של המערכת
 font = "sans serif"
+
+client.showSidebarNavigation = false
