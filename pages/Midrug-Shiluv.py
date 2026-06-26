@@ -74,7 +74,7 @@ for idx in range(4, df_s.shape[1]):
 # 3. כותרת עליונה
 st.markdown("<h2 style='color: #0f172a; font-weight: 700; margin-bottom: 25px;'>📊 השוואת מדרוג מול סקר שילוב</h2>", unsafe_allow_html=True)
 
-# 4. אזור פילטרים עליון בתוך בלוק מוגן
+# 4. אזור פילטרים עליון
 col_f1, col_f2, _, _ = st.columns([1.5, 1.5, 1, 1])
 with col_f1:
     wave = st.selectbox("גל מחקר:", ["חיבור שניהם", "גל 19 במאי", "גל 25 במאי"])
@@ -145,25 +145,22 @@ with col_chart:
             textposition="bottom center"
         ))
 
-        # חישוב מקסימום דינמי לציר ה-X
-        max_val = max(max(s_vals or [100]), max(m_vals or [100]))
-
-        # פריסה יציבה לחלוטין ללא קריסות (יישור והיפוך ידני של הצירים לפיוז'ן RTL מושלם)
+        # פריסה יציבה - טווח קשיח מ-100 עד 0 למניעת קריסות חישוב דינמי
         fig.update_layout(
             margin=dict(l=40, r=260, t=50, b=60), 
             paper_bgcolor='rgba(0,0,0,0)',
             plot_bgcolor='rgba(0,0,0,0)',
-            height=max(450, len(labels) * 50), # גובה דינמי המונע לחלוטין דחיסה של שורות
+            height=max(450, len(labels) * 50), 
             
             legend=dict(
                 orientation="h", y=-0.12, x=0.5, xanchor="center", 
                 font=dict(size=12, color="#475569")
             ),
             
-            # ציר X עליון הפוך בצורה בטוחה ומותאמת אחוזים
+            # ציר X עליון הפוך בצורה בטוחה (מ-100 ל-0)
             xaxis=dict(
                 showgrid=True, gridcolor="#f1f5f9", side="top",
-                range=[max_val + 5, 0], # היפוך הציר על ידי טווח מהגבוה לנמוך
+                range=[100, 0], 
                 ticksuffix="%", tickfont=dict(size=11, color="#64748b")
             ),
             
@@ -171,7 +168,7 @@ with col_chart:
             yaxis=dict(
                 side="right", 
                 categoryorder="array",
-                categoryarray=labels[::-1], # סדר הפוך כדי שהשורה הראשונה תהיה למעלה
+                categoryarray=labels[::-1], 
                 tickfont=dict(size=13, color="#0f172a"),
                 pad=20
             )
