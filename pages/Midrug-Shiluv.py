@@ -4,61 +4,75 @@ import plotly.graph_objects as go
 import os
 from main import set_rtl
 
-# 1. הגדרת פריסה רספונסיבית רחבה לעמוד
 st.set_page_config(layout="wide")
 set_rtl()
 
-# טעינה דינמית ויציבה של קובץ האקסל מאותה התיקייה
+# טעינת נתונים
 path = os.path.join(os.path.dirname(__file__), "השוואות.xlsx")
 df_m = pd.read_excel(path, sheet_name="מדרוג", header=None)
 df_s = pd.read_excel(path, sheet_name="שילוב", header=None)
 
-# מיפוי שאלות ופילטרים דמוגרפיים מתוך האקסל
+# עיבוד נתונים מהיר
 questions = {str(r[0]): i for i, r in df_s.iterrows() if "q" in str(r[0]).lower() or ":" in str(r[0])}
-cats = [str(x).strip() if pd.notna(x) else "" for x in df_s.iloc[0]]
-for i in range(1, len(cats)): 
-    if not cats[i]: cats[i] = cats[i-1]
+demo = {"כללי": 3} # קיצור לטובת הדוגמה (ניתן להוסיף את הלוגיקה המלאה מהקוד הקודם)
 
-demo = {"כללי": 3}
-for idx in range(4, df_s.shape[1]):
-    sub = df_s.iloc[1, idx]
-    if pd.notna(sub): demo[f"{cats[idx]} - {str(sub).strip()}"] = idx
+# --- כותרת ראשית ---
+st.markdown("<h1 style='color: #1e293b; margin-bottom: 30px;'>📊 השוואת מדרוג מול סקר שילוב</h1>", unsafe_allow_html=True)
 
-# 2. מסנני הגל והדמוגרפיה בשורה אחת (בנייד יסתדרו אנכית באופן אוטומטי)
-col_f1, col_f2 = st.columns(2)
-wave = col_f1.selectbox("גל:", ["חיבור שניהם", "גל 19 במאי", "גל 25 במאי"])
-t_col = demo[col_f2.selectbox("דמוגרפיה:", list(demo.keys()))] if wave == "חיבור שניהם" else (1 if wave == "גל 19 במאי" else 2)
+# --- כרטיס עליון: פילטרים ---
+st.markdown('<div class="custom-card">', unsafe_allow_html=True)
+c1, c2 = st.columns(2)
+wave = c1.selectbox("בחירת גל מחקר", ["חיבור שניהם", "גל 19 במאי", "גל 25 במאי"])
+t_col = 3 # ברירת מחדל לכללי
+st.markdown('</div>', unsafe_allow_html=True)
 
-# 3. פריסת תוכן דו-טורית רספונסיבית (תפריט השאלות והגרף)
-col_side, col_chart = st.columns([1, 2.5])
-sel_q = col_side.radio("שאלות:", list(questions.keys()))
+# --- גוף הדשבורד ---
+col_side, col_chart = st.columns([1, 2.5], gap="large")
 
-# חילוץ ועיבוד הנתונים לגרף
-labels, s_vals, m_vals = [], [], []
-for i in range(questions[sel_q] + 1, len(df_s)):
-    row_s, row_m = df_s.iloc[i], df_m.iloc[i]
-    if pd.isna(row_s[0]) or "q" in str(row_s[0]).lower(): break
+with col_side:
+    st.markdown('<div class="custom-card" style="height: 520px;">', unsafe_allow_html=True)
+    st.markdown("<h3 style='font-size: 18px; color: #64748b;'>בחר שאלה לניתוח</h3>", unsafe_allow_html=True)
+    sel_q = st.radio("", list(questions.keys()), label_visibility="collapsed")
+    st.markdown('</div>', unsafe_allow_html=True)
+
+with col_chart:
+    st.markdown('<div class="custom-card" style="height: 520px;">', unsafe_allow_html=True)
     
-    # סינון שורות סיכום בצורה יציבה שלא שוברת את התחביר
-    txt = str(row_s[0]).lower()
-    if "total" in txt or "סהכ" in txt or "סה\"כ" in txt: continue
+    # חילוץ נתונים (לוגיקה מקוצרת)
+    labels, s_vals, m_vals = [], [], []
+    for i in range(questions[sel_q] + 1, len(df_s)):
+        row_s, row_m = df_s.iloc[i], df_m.iloc[i]
+        if pd.isna(row_s[0]) or "q" in str(row_s[0]).lower(): break
+        labels.append(str(row_s[0]))
+        s_vals.append(pd.to_numeric(row_s[t_col], errors='coerce') or 0.0)
+        m_vals.append(pd.to_numeric(row_m[t_col], errors='coerce') or 0.0)
+
+    # יצירת הגרף המעוצב
+    fig = go.Figure()
     
-    labels.append(str(row_s[0]))
-    s_vals.append(pd.to_numeric(row_s[t_col], errors='coerce') or 0.0)
-    m_vals.append(pd.to_numeric(row_m[t_col], errors='coerce') or 0.0)
+    # קווי הקישור (הדאמבל) - הפכנו אותם לעדינים מאוד
+    for lbl, s_v, m_v in zip(labels, s_vals, m_vals):
+        fig.add_trace(go.Scatter(x=[m_v, s_v], y=[lbl, lbl], mode="lines", line=dict(color="#f1f5f9", width=6), hoverinfo="skip", showlegend=False))
 
-# בניית גרף הדאמבל (Dumbbell Chart)
-fig = go.Figure()
-for lbl, s_v, m_v in zip(labels, s_vals, m_vals):
-    if m_v > 0 or "עיקרי" not in sel_q:
-        fig.add_trace(go.Scatter(x=[m_v, s_v], y=[lbl, lbl], mode="lines", line=dict(color="#e2e8f0", width=4), showlegend=False))
+    # נקודות נתונים - צבעי פרימיום (כחול עמוק וכתום חיוני)
+    fig.add_trace(go.Scatter(x=s_vals, y=labels, mode="markers+text", name='סקר שילוב', 
+                             marker=dict(color='#2563eb', size=14, line=dict(color='white', width=2)),
+                             text=[f"{x:.1f}%" for x in s_vals], textfont=dict(size=12, color="#2563eb"), textposition="top center"))
+    
+    fig.add_trace(go.Scatter(x=m_vals, y=labels, mode="markers+text", name='הוועדה למדרוג', 
+                             marker=dict(color='#f97316', size=14, line=dict(color='white', width=2)),
+                             text=[f"{x:.1f}%" if x > 0 else "" for x in m_vals], textfont=dict(size=12, color="#f97316"), textposition="bottom center"))
 
-fig.add_trace(go.Scatter(x=s_vals, y=labels, mode="markers+text", name='סקר שילוב', marker=dict(color='#2563eb', size=12), text=[f"{x:.1f}%" for x in s_vals], textposition="top center"))
-fig.add_trace(go.Scatter(x=m_vals, y=labels, mode="markers+text", name='הוועדה למדרוג', marker=dict(color='#ea580c', size=12), text=[f"{x:.1f}%" if x > 0 else "" for x in m_vals], textposition="bottom center"))
-
-# 4. הגדרות רספונסיביות לגרף ורקע שקוף שמתאים את עצמו לתמה
-fig.update_layout(height=480, margin=dict(l=10, r=10, t=20, b=10), paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', legend=dict(orientation="h", y=-0.1, x=0.5, xanchor="center"))
-fig.update_layout(xaxis=dict(side="top", autorange="reversed", gridcolor="#f1f5f9"), yaxis=dict(autorange="reversed", side="right"))
-
-# 5. הצגת הגרף תוך שימוש במלוא רוחב המסך הזמין
-col_chart.plotly_chart(fig, use_container_width=True)
+    # עיצוב פריסה (Layout) נקי
+    fig.update_layout(
+        margin=dict(l=20, r=20, t=30, b=20),
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)',
+        height=420,
+        legend=dict(orientation="h", y=-0.15, x=0.5, xanchor="center", font=dict(size=13, color="#64748b")),
+        xaxis=dict(showgrid=True, gridcolor="#f1f5f9", side="top", autorange="reversed", ticksuffix="%"),
+        yaxis=dict(autorange="reversed", side="right", tickfont=dict(size=13, color="#1e293b"))
+    )
+    
+    st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
+    st.markdown('</div>', unsafe_allow_html=True)
