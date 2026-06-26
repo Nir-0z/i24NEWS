@@ -51,6 +51,24 @@ def load_data():
 df_m, df_s = load_data()
 questions = {str(r[0]): i for i, r in df_s.iterrows() if "q" in str(r[0]).lower() or ":" in str(r[0])}
 
+# בניית מילוי חכם לקטגוריות העליונות (מגדר, גיל וכו') כדי לחבר אותן לתתי-הקטגוריות
+categories = list(df_s.iloc[0])
+current_cat = ""
+filled_categories = []
+for cat in categories:
+    if pd.notna(cat) and str(cat).strip() != "":
+        current_cat = str(cat).strip()
+    filled_categories.append(current_cat)
+
+# יצירת רשימת פילטרים משולבת: "קטגוריה - ערך" עם מיפוי לאינדקס העמוד המקורי
+demo_mapping = {"כללי": 3}  # ברירת מחדל לחיבור שניהם (עמוד 3 באקסל)
+for col_idx in range(4, df_s.shape[1]):
+    sub_cat = df_s.iloc[1, col_idx]
+    if pd.notna(sub_cat) and str(sub_cat).strip() != "":
+        main_cat = filled_categories[col_idx]
+        display_name = f"{main_cat} - {str(sub_cat).strip()}"
+        demo_mapping[display_name] = col_idx
+
 st.markdown("<h1 style='color: #0f172a; margin-bottom: 25px; font-weight: 800; font-size: 2.3rem;'>📊 דשבורד השוואת נתוני צפייה</h1>", unsafe_allow_html=True)
 
 with st.container():
@@ -59,11 +77,12 @@ with st.container():
         wave = st.selectbox("בחרו גל:", ["חיבור שניהם", "גל 19 במאי", "גל 25 במאי"])
     with col_f2:
         if wave == "חיבור שניהם":
-            demo_opts = ["כללי"] + list(df_s.iloc[1, 4:].dropna().unique())
-            demo = st.selectbox("בחרו פילטר דמוגרפי:", demo_opts)
+            # הצגת הרשימה המשולבת החדשה ("מגדר - גברים" וכו')
+            selected_demo_display = st.selectbox("בחרו פילטר דמוגרפי:", list(demo_mapping.keys()))
+            t_col = demo_mapping[selected_demo_display]
         else:
             st.selectbox("בחרו פילטר דמוגרפי:", ["נעול - פעיל רק בגל מאוחד"], disabled=True)
-            demo = "כללי"
+            t_col = 1 if wave == "גל 19 במאי" else 2
 
 st.markdown("<div style='margin-bottom: 20px;'></div>", unsafe_allow_html=True)
 
@@ -73,8 +92,6 @@ with col_side:
     st.markdown("<h3 style='color: #0f172a; margin-bottom: 20px; font-weight: 700; border-bottom: 2px solid #f1f5f9; padding-bottom: 12px;'>📋 תפריט שאלות</h3>", unsafe_allow_html=True)
     sel_q = st.radio("בחרו שאלה מהרשימה:", list(questions.keys()))
     start = questions[sel_q]
-
-t_col = 1 if wave == "גל 19 במאי" else (2 if wave == "גל 25 במאי" else (3 if demo == "כללי" else list(df_s.iloc[1]).index(demo)))
 
 labels, s_vals, m_vals = [], [], []
 for i in range(start + 1, len(df_s)):
@@ -127,7 +144,6 @@ with col_chart:
         textfont=dict(size=11, weight="bold")
     ))
     
-    # פיצול הגדרות ה-layout לשורות קצרות ובטוחות למניעת חיתוכי סינטקס
     fig.update_layout(height=520)
     fig.update_layout(margin=dict(l=10, r=20, t=20, b=10))
     fig.update_layout(paper_bgcolor='white', plot_bgcolor='white')
