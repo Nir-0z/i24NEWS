@@ -10,10 +10,14 @@ st.set_page_config(layout="wide", page_title="השוואת מדרוג ושילו
 st.markdown("""
 <style>
     * {direction: rtl!important; text-align: right!important;}
+
+    /* הגדלת הטקסט באפשרויות הרדיו בתפריט השאלות */
+    .stRadio label div[data-testid="stMarkdownContainer"] p {
+        font-size: 15px !important;
+    }
     
     /* מרווח וקו תחתון בין אפשרויות הרדיו */
     .stRadio label {
-        font-size: 15px !important;
         padding: 15px 0 !important;
         border-bottom: 1px solid #f3f4f6;
         display: flex !important;
@@ -109,7 +113,7 @@ with chart_col:
         if labels:
             # מראה מיקום בטקסט קטן ובולד מעל התשובה שמעל התרשים
             demo_display = sel_d if 'sel_d' in locals() and sel_w == "חיבור שני הגלים" else "כללי"
-            st.markdown(f"<p style='font-size:12px; font-weight:bold; color:#6b7280; margin-bottom:4px;'>{sel_p} &gt; {sel_w} &gt; {demo_display}</p>", unsafe_allow_html=True)
+            st.markdown(f"<p style='font-size:12px; font-weight:bold; color:#6b7280; margin-bottom:4px;'>{sel_p} &nbsp; &gt; &nbsp; {sel_w} &nbsp; &gt; &nbsp; {demo_display}</p>", unsafe_allow_html=True)
             
             st.markdown(f"### 📋 {sel_q}")
             st.write("")
