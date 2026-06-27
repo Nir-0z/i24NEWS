@@ -43,19 +43,19 @@ st.title("📊 השוואת מדרוג מול סקר שילוב")
 # 3. אזור הפילטרים בפייתון טהור (תוויות לצד התיבות)
 # ==========================================
 with st.container(border=True):
-    # פריסה אופקית מובנית לגמרי בפייתון המאזנת את השורה לכל פילטר
+    # חלוקה מדויקת לעמודות אופקיות בפייתון
     col_title, lbl1, box1, lbl2, box2, lbl3, box3 = st.columns([1.8, 1.2, 3, 1.0, 3, 1.5, 3.2], gap="small")
     
     with col_title:
         st.markdown("### 🎯 סינון נתונים")
         
     with lbl1:
-        st.markdown("<div style='padding-top: 10px;'>ימי מדידה:</div>", unsafe_allow_html=True)
+        st.write("ימי מדידה:")
     with box1:
         sel_period = st.selectbox("", ["אמצע שבוע", "סוף שבוע"], index=0, label_visibility="collapsed")
     
     with lbl2:
-        st.markdown("<div style='padding-top: 10px;'>גל מחקר:</div>", unsafe_allow_html=True)
+        st.write("גל מחקר:")
     with box2:
         if sel_period == "אמצע שבוע":
             waves = ["גל 19 במאי", "גל 25 במאי", "חיבור שני הגלים"]
@@ -64,7 +64,7 @@ with st.container(border=True):
         sel_wave = st.selectbox("", waves, index=2, label_visibility="collapsed")
     
     with lbl3:
-        st.markdown("<div style='padding-top: 10px;'>פילוח דמוגרפי:</div>", unsafe_allow_html=True)
+        st.write("פילוח דמוגרפי:")
     with box3:
         if sel_wave == "חיבור שני הגלים":
             df_w = df[(df['period'] == sel_period) & (df['wave'] == sel_wave)]
