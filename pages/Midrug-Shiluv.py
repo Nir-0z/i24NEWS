@@ -210,4 +210,6 @@ with chart_col:
                     tickfont=dict(size=12, weight="bold")
                 )
             )
-            st.plotly_chart(fig, use_container_width=True, config={'displayMode
+            st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
+        else:
+            st.info("אין נתונים להצגת תרשים עבור שאלה זו.")
