@@ -214,7 +214,7 @@ with chart_col:
                 height=550,
                 legend=dict(
                     orientation="h", 
-                    y=1.0, # מקראה למעלה, צמודה לתרשים
+                    y=0.5, # מקראה למעלה, צמודה לתרשים
                     x=0.5, 
                     xanchor="center",
                     yanchor="bottom"
