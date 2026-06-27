@@ -408,7 +408,7 @@ if sel_w == "ממוצע שני הגלים" and has_i24:
                     ),
                     xaxis=dict(
                         side="top", # אחוזים למעלה
-                        range=[-10, mx_demo],
+                        range=[-5, mx_demo],
                         showgrid=True, 
                         gridcolor="#f3f4f6", 
                         zeroline=False, 
