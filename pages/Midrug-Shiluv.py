@@ -194,6 +194,40 @@ with chart_col:
             )
             st.plotly_chart(fig_sov, use_container_width=True, config={'displayModeBar': False})
 
+   # חישוב נתחי השוק והפערים עבור הטבלה השנייה
+            sov_table_data = []
+            s_data_full = plot_df[plot_df['source'] == 'שילוב']
+            m_data_full = plot_df[plot_df['source'] == 'מדרוג']
+            
+            sum_s_vals = sum([s_data_full[s_data_full['answer_text'] == c]['percentage'].values[0] if not s_data_full[s_data_full['answer_text'] == c].empty else 0 for c in available_channels])
+            sum_m_vals = sum([m_data_full[m_data_full['answer_text'] == c]['percentage'].values[0] if not m_data_full[m_data_full['answer_text'] == c].empty else 0 for c in available_channels])
+
+            if sum_s_vals > 0 and sum_m_vals > 0:
+                for c in available_channels:
+                    s_pct = s_data_full[s_data_full['answer_text'] == c]['percentage'].values[0] if not s_data_full[s_data_full['answer_text'] == c].empty else 0
+                    m_pct = m_data_full[m_data_full['answer_text'] == c]['percentage'].values[0] if not m_data_full[m_data_full['answer_text'] == c].empty else 0
+                    
+                    s_norm = (s_pct / sum_s_vals) * 100
+                    m_norm = (m_pct / sum_m_vals) * 100
+                    sov_diff = m_norm - s_norm
+                    sov_table_data.append((c, sov_diff))
+
+            if sov_table_data:
+                html_sov_code = f'<table class="custom-table"><thead><tr>'
+                html_sov_code += f'<th class="custom-th">פרמטר</th>'
+                for c, _ in sov_table_data:
+                    html_sov_code += f'<th class="custom-th">{c}</th>'
+                html_sov_code += "</tr></thead><tbody>"
+                
+                html_sov_code += "<tr>"
+                html_sov_code += f'<td class="custom-td" style="font-weight: bold; background-color: #f9fafb;">פער (מדרוג פחות סקר)</td>'
+                for _, diff in sov_table_data:
+                    cls = "pos-val" if diff > 0 else "neg-val" if diff < 0 else "zero-val"
+                    html_sov_code += f'<td class="custom-td {cls}">{"+" if diff > 0 else ""}{diff:.1f}%</td>'
+                html_sov_code += "</tr></tbody></table>"
+                
+                st.markdown(html_sov_code, unsafe_allow_html=True)
+
     has_i24 = any("i24" in ans for ans in labels)
     if sel_w == "ממוצע שני הגלים" and has_i24:
         st.write("") 
