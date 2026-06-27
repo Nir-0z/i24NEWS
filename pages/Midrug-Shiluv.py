@@ -118,7 +118,7 @@ with chart_col:
             st.markdown(f"### 📋 {sel_q}")
             st.write("")
             
-            # --- בניית הטבלה המבוקשת (תשובות בשורה 1, פער בשורה 2) ---
+            # --- בניית הטבלה המבוקשת (תשובות בשורה 1, פער בשורה 2 ללא תווית עמודה) ---
             table_data = {}
             for ans in labels:
                 s_row = plot_df[(plot_df['answer_text'] == ans) & (plot_df['source'] == 'שילוב')]
@@ -129,33 +129,33 @@ with chart_col:
                 
                 # מציגים פערים רק לתשובות שקיימות בשני המקורות
                 if s_v is not None and m_v is not None:
-                    diff = s_v - m_v
-                    # שמירת הערך המספרי לצורך צביעה מותנית ב-Styler
+                    # חישוב הפער המבוקש: מדרוג פחות שילוב
+                    diff = m_v - s_v
                     table_data[ans] = diff
             
             if table_data:
-                st.markdown("##### 📉 פערים באחוזים (סקר שילוב מול ועדת מדרוג)")
+                st.markdown("##### 📉 פערים באחוזים (מדרוג פחות שילוב)")
                 
                 # יצירת DataFrame שבו השורות הן התשובות והעמודה היא הפער
-                df_diff = pd.DataFrame.from_dict(table_data, orient='index', columns=['פער (שילוב - מדרוג)'])
+                df_diff = pd.DataFrame.from_dict(table_data, orient='index', columns=[''])
                 
-                # טרנספוזיציה כדי שהתשובות יהיו עמודות (שורה ראשונה בטבלה המוצגת)
+                # טרנספוזיציה כדי שהתשובות יהיו עמודות (שורה ראשונה בטבלה), השורה השנייה תהיה הערכים
                 df_diff_transposed = df_diff.T
                 
                 # פונקציית עיצוב להצגת המספרים עם סימן וצבעים (ירוק לחיובי, אדום לשלילי)
                 def color_diff(val):
                     if val > 0:
-                        return f'color: green; font-weight: bold;'
+                        return 'color: green; font-weight: bold;'
                     elif val < 0:
-                        return f'color: red; font-weight: bold;'
-                    return f'color: black;'
+                        return 'color: red; font-weight: bold;'
+                    return 'color: black;'
 
                 def format_diff(val):
                     return f"+{val:.1f}%" if val > 0 else f"{val:.1f}%"
 
                 # החלת העיצוב והצגת הטבלה
                 styled_table = df_diff_transposed.style.map(color_diff).format(format_diff)
-                st.dataframe(styled_table, use_container_width=True)
+                st.dataframe(styled_table, use_container_width=True, hide_index=True)
                 st.write("")
             # --------------------------------------------------------
             
