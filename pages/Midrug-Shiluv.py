@@ -13,7 +13,7 @@ st.markdown("""
         text-align: right !important;
     }
     /* ריווח כפתורי הבחירה בתפריט */
-    div.row-widget.stRadio > div {
+    .stRadio > div {
         gap: 1.5rem; 
         padding-top: 10px;
     }
