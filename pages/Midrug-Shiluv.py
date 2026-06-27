@@ -62,6 +62,8 @@ with menu_col:
     #########################################
     with st.container(border=True):
         st.markdown("### 📋 בחירת שאלה")
+        st.info("השאלות כאן מתעדכנות בהתאם לסקר שבחרתם - אמצע שבוע או סופי שבוע")
+
         sel_q = st.radio("", q_list, index=0, label_visibility="collapsed")
 
 plot_df = df_f[df_f['question_text'] == sel_q]
