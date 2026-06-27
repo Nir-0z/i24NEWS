@@ -115,7 +115,6 @@ with chart_col:
             demo_display = sel_d if 'sel_d' in locals() and sel_w == "חיבור שני הגלים" else "כללי"
             st.markdown(f"<p style='font-size:12px; font-weight:bold; color:#6b7280; margin-bottom:4px;'>{sel_p} &nbsp; &gt; &nbsp; {sel_w} &nbsp; &gt; &nbsp; {demo_display}</p>", unsafe_allow_html=True)
             
-            # הוסר האייקון מכותרת השאלה
             st.markdown(f"### {sel_q}")
             st.write("")
             
@@ -135,7 +134,6 @@ with chart_col:
                     table_data[ans] = diff
             
             if table_data:
-                # שונתה הכותרת לנוסח החדש ללא אייקון
                 st.markdown("##### עד כמה הנתונים נמוכים/גבוהים ביחס למדרוג")
                 
                 # יצירת DataFrame שבו השורות הן התשובות והעמודה היא הפער
@@ -144,19 +142,19 @@ with chart_col:
                 # טרנספוזיציה כדי שהתשובות יהיו עמודות (שורה ראשונה בטבלה), השורה השנייה תהיה הערכים
                 df_diff_transposed = df_diff.T
                 
-                # פונקציית עיצוב להצגת המספרים עם סימן וצבעים (ירוק לחיובי, אדום לשלילי)
-                def color_diff(val):
+                # פונקציית עיצוב עם CSS ליישור התאים והטקסט לאמצע
+                def style_table_cells(val):
                     if val > 0:
-                        return 'color: green; font-weight: bold;'
+                        return 'color: green; font-weight: bold; text-align: center !important;'
                     elif val < 0:
-                        return 'color: red; font-weight: bold;'
-                    return 'color: black;'
+                        return 'color: red; font-weight: bold; text-align: center !important;'
+                    return 'color: black; text-align: center !important;'
 
                 def format_diff(val):
                     return f"+{val:.1f}%" if val > 0 else f"{val:.1f}%"
 
                 # החלת העיצוב והצגת הטבלה
-                styled_table = df_diff_transposed.style.map(color_diff).format(format_diff)
+                styled_table = df_diff_transposed.style.map(style_table_cells).format(format_diff)
                 st.dataframe(styled_table, use_container_width=True, hide_index=True)
                 st.write("")
             # --------------------------------------------------------
