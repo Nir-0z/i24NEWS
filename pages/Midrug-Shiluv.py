@@ -91,13 +91,16 @@ with chart_col:
                         line=dict(color="#d1d5db", width=2, dash="dot"), showlegend=False, hoverinfo="skip"
                     ))
             
-            # הוספת הנקודות והטקסטים לפי הכללים המעודכנים
+            # הוספת הנקודות והטקסטים עם עיגול לספרה אחת ויישום הכללים המדויקים
             def add_points(source_filter, source_name, color):
                 x_vals, y_vals, hover_vals, txt_vals, txt_pos = [], [], [], [], []
                 
                 for i, ans in enumerate(labels):
                     row = plot_df[(plot_df['answer_text'] == ans) & (plot_df['source'] == source_filter)]
                     val = row['percentage'].values[0] if not row.empty else None
+                    
+                    if val is not None:
+                        val = round(val, 1)  # עיגול לספרה אחת אחרי הנקודה
                     
                     x_vals.append(val)
                     y_vals.append(wrapped_labels[i])
@@ -109,15 +112,18 @@ with chart_col:
                         s_val = plot_df[(plot_df['answer_text'] == ans) & (plot_df['source'] == 'שילוב')]['percentage'].values[0] if not plot_df[(plot_df['answer_text'] == ans) & (plot_df['source'] == 'שילוב')].empty else None
                         m_val = plot_df[(plot_df['answer_text'] == ans) & (plot_df['source'] == 'מדרוג')]['percentage'].values[0] if not plot_df[(plot_df['answer_text'] == ans) & (plot_df['source'] == 'מדרוג')].empty else None
                         
-                        # כלל 1: כאשר יש נתון בודד - התוצאה תוצג לימינו
-                        if s_v is None or m_v is None:
-                            txt_pos.append("middle right")
-                        else:
-                            # כלל 2: שני נתונים - הנמוך משמאל, הגבוה מימין
-                            if val < min(s_val, m_val): # למקרה שזה הנמוך
+                        if s_val is not None and m_val is not None:
+                            s_val = round(s_val, 1)
+                            m_val = round(m_val, 1)
+                            
+                            # במצב שני נתונים: הנמוך משמאל לבולט, הגבוה מימין לבולט
+                            if val < min(s_val, m_val) or val == min(s_val, m_val):
                                 txt_pos.append("middle left")
                             else:
                                 txt_pos.append("middle right")
+                        else:
+                            # נתון בודד יוצג תמיד לימין הבולט
+                            txt_pos.append("middle right")
                     else:
                         hover_vals.append("")
                         txt_vals.append("")
@@ -149,8 +155,7 @@ with chart_col:
                 ),
                 xaxis=dict(
                     side="top", 
-                    # כלל 3: הגרף מתחיל במינוס 10 כדי לתת מרווח כאשר הערך קרוב לאפס
-                    range=[-10, mx * 1.3], 
+                    range=[-10, mx * 1.3], # הגרף מתחיל ממינוס 10 כדי לתת מרווח כאשר הערך קרוב לאפס
                     showgrid=True, 
                     gridcolor="#f3f4f6", 
                     zeroline=False, 
