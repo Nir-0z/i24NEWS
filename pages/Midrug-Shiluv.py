@@ -51,6 +51,7 @@ st.markdown("""
     div[data-testid="stPlotlyChart"] {
         direction: ltr !important;
         text-align: left !important;
+        unicode-bidi: isolate !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -90,34 +91,31 @@ with st.container(border=True):
 
 df_f = df[(df['period'] == sel_p) & (df['wave'] == sel_w) & (df['demo_category'] == cat) & (df['demo_value'] == val)]
 
-# אזור התצוגה - תפריט לצד הגרף
+# אזור התצוגה - תפריט בחירת שאלה ברוחב מלא 100% בראש העמוד
 q_list = df_f['question_text'].unique().tolist()
 if not q_list: 
     st.warning("אין נתונים עבור הסינון שנבחר.")
     st.stop()
 
-menu_col, chart_col = st.columns([1.1, 2.7], gap="small")
-
-with menu_col:
-    with st.container(border=True):
-        st.markdown("### 📋 בחירת שאלה:")
-        st.write("")
-        sel_q = st.radio("", q_list, index=0, label_visibility="collapsed")
+with st.container(border=True):
+    st.markdown("### 📋 בחירת שאלה:")
+    st.write("")
+    sel_q = st.radio("", q_list, index=0, label_visibility="collapsed")
 
 plot_df = df_f[df_f['question_text'] == sel_q]
 labels = plot_df['answer_text'].drop_duplicates().tolist()
 
-with chart_col:
-    # כרטיס המציג את נתיב הסינון בצורה בולטת מעל הגרף הראשי
-    if labels:
-        demo_display = sel_d if 'sel_d' in locals() and sel_w == "ממוצע שני הגלים" else "כללי"
-        st.markdown(f"""
-            <div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px 16px; background-color: #f9fafb; margin-bottom: 12px; display: flex; align-items: center;">
-                <span style="font-size:1.75rem; margin-left: 10px;">ℹ️</span>
-                <span style="font-size:1.75rem; font-weight:bold; color:#374151;">&nbsp;{sel_p} &nbsp; &gt; &nbsp; {sel_w} &nbsp; &gt; &nbsp; {demo_display}</span>
-            </div>
-        """, unsafe_allow_html=True)
-        
+# כרטיס המציג את נתיב הסינון בצורה בולטת מעל הגרף הראשי
+if labels:
+    demo_display = sel_d if 'sel_d' in locals() and sel_w == "ממוצע שני הגלים" else "כללי"
+    st.markdown(f"""
+        <div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px 16px; background-color: #f9fafb; margin-bottom: 12px; margin-top: 12px; display: flex; align-items: center;">
+            <span style="font-size:1.75rem; margin-left: 10px;">ℹ️</span>
+            <span style="font-size:1.75rem; font-weight:bold; color:#374151;">&nbsp;{sel_p} &nbsp; &gt; &nbsp; {sel_w} &nbsp; &gt; &nbsp; {demo_display}</span>
+        </div>
+    """, unsafe_allow_html=True)
+    
+    # אזור הגרפים והטבלאות - רוחב מלא 100%
     with st.container(border=True):
         if labels:
             st.markdown(f"### 📈 סקר מכון שילוב מול נתוני ועדת המדרוג")
@@ -236,7 +234,7 @@ with chart_col:
             st.info("אין נתונים להצגת תרשים עבור שאלה זו.")
 
 # ==============================================================================
-# --- כרטיס תרשים נתח שוק (SOV) מוערם 100% – טקסט ממורכז בצורה תקנית ---
+# --- כרטיס תרשים נתח שוק (SOV) מוערם 100% – רוחב מלא 100% ---
 # ==============================================================================
 target_channels = ["ערוץ כאן 11", "ערוץ קשת 12", "ערוץ רשת 13", "ערוץ עכשיו 14", "ערוץ i24news (אפיק 15)"]
 channel_colors = {
@@ -251,108 +249,106 @@ available_channels = [c for c in target_channels if c in labels]
 
 if len(available_channels) > 1:
     st.write("")
-    with chart_col:
-        with st.container(border=True):
-            st.markdown("### 📊 נתח שוק יחסי מתוך ערוצי הברודקאסט")
-            st.write("")
+    with st.container(border=True):
+        st.markdown("### 📊 נתח שוק יחסי מתוך ערוצי הברודקאסט")
+        st.write("")
+        
+        fig_sov = go.Figure()
+        
+        for idx, (source_name, source_key) in enumerate([("הוועדה למדרוג", "מדרוג"), ("סקר שילוב", "שילוב")]):
+            source_data = plot_df[plot_df['source'] == source_key]
             
-            fig_sov = go.Figure()
+            channel_values = []
+            for channel in available_channels:
+                val = source_data[source_data['answer_text'] == channel]['percentage'].values[0] if not source_data[source_data['answer_text'] == channel].empty else 0
+                channel_values.append(val)
             
-            for idx, (source_name, source_key) in enumerate([("הוועדה למדרוג", "מדרוג"), ("סקר שילוב", "שילוב")]):
-                source_data = plot_df[plot_df['source'] == source_key]
-                
-                channel_values = []
-                for channel in available_channels:
-                    val = source_data[source_data['answer_text'] == channel]['percentage'].values[0] if not source_data[source_data['answer_text'] == channel].empty else 0
-                    channel_values.append(val)
-                
-                sum_5_channels = sum(channel_values)
-                
-                if sum_5_channels > 0:
-                    for i, channel in enumerate(available_channels):
-                        normalized_share = (channel_values[i] / sum_5_channels) * 100
-                        
-                        fig_sov.add_trace(go.Bar(
-                            name=channel,
-                            legendgroup=channel,
-                            showlegend=(idx == 0),
-                            y=[source_name],
-                            x=[normalized_share],
-                            orientation='h',
-                            marker=dict(
-                                color=channel_colors.get(channel, "#000"),
-                                line=dict(color='white', width=2)
-                            ),
-                            hovertemplate=f"{channel}<br>נתח מתוך הברודקאסט: %{{x:.1f}}%<extra></extra>",
-                            text=f"{normalized_share:.1f}%" if normalized_share > 4.5 else "", 
-                            textposition='inside',
-                            insidetextanchor="middle",
-                            textfont=dict(color="white", weight="bold", size=12)
-                        ))
+            sum_5_channels = sum(channel_values)
             
-            fig_sov.update_layout(
-                barmode='stack',
-                height=400,
-                autosize=True,
-                bargap=0.3,
-                margin=dict(l=125, r=20, t=20, b=50),
-                paper_bgcolor='rgba(0,0,0,0)',
-                plot_bgcolor='rgba(0,0,0,0)',
-                showlegend=True,
-                legend=dict(
-                    orientation="h", 
-                    y=-0.4, 
-                    x=0.5, 
-                    xanchor="center",
-                    font=dict(size=11)
-                ),
-                xaxis=dict(showticklabels=False, showgrid=False, range=[0, 100]),
-                yaxis=dict(tickfont=dict(weight="bold", size=14))
-            )
-            
-            st.plotly_chart(fig_sov, use_container_width=True, config={'displayModeBar': False})
+            if sum_5_channels > 0:
+                for i, channel in enumerate(available_channels):
+                    normalized_share = (channel_values[i] / sum_5_channels) * 100
+                    
+                    fig_sov.add_trace(go.Bar(
+                        name=channel,
+                        legendgroup=channel,
+                        showlegend=(idx == 0),
+                        y=[source_name],
+                        x=[normalized_share],
+                        orientation='h',
+                        marker=dict(
+                            color=channel_colors.get(channel, "#000"),
+                            line=dict(color='white', width=2)
+                        ),
+                        hovertemplate=f"{channel}<br>נתח מתוך הברודקאסט: %{{x:.1f}}%<extra></extra>",
+                        text=f"{normalized_share:.1f}%" if normalized_share > 4.5 else "", 
+                        textposition='inside',
+                        insidetextanchor="middle",
+                        textfont=dict(color="white", weight="bold", size=12)
+                    ))
+        
+        fig_sov.update_layout(
+            barmode='stack',
+            height=400,
+            autosize=True,
+            bargap=0.3,
+            margin=dict(l=125, r=20, t=20, b=50),
+            paper_bgcolor='rgba(0,0,0,0)',
+            plot_bgcolor='rgba(0,0,0,0)',
+            showlegend=True,
+            legend=dict(
+                orientation="h", 
+                y=-0.4, 
+                x=0.5, 
+                xanchor="center",
+                font=dict(size=11)
+            ),
+            xaxis=dict(showticklabels=False, showgrid=False, range=[0, 100]),
+            yaxis=dict(tickfont=dict(weight="bold", size=14))
+        )
+        
+        st.plotly_chart(fig_sov, use_container_width=True, config={'displayModeBar': False})
 
 # ==============================================================================
-# --- כרטיס תחתון: תרשים מוטה צירים ממוקד i24news ---
+# --- כרטיס תחתון: תרשים מוטה צירים ממוקד i24news – רוחב מלא 100% ---
 # ==============================================================================
 has_i24 = any("i24" in ans for ans in labels)
 
 if sel_w == "ממוצע שני הגלים" and has_i24:
     st.write("") 
-    with chart_col:
-        with st.container(border=True):
-            i24_answer_text = next((ans for ans in labels if "i24" in ans), None)
-            st.markdown(f"### 👨‍👩‍👧‍👦 {sel_q} &nbsp;–&nbsp; i24news")
-            st.write("")
+    with st.container(border=True):
+        i24_answer_text = next((ans for ans in labels if "i24" in ans), None)
+        st.markdown(f"### 👨‍👩‍👧‍👦 {sel_q} &nbsp;–&nbsp; i24news")
+        st.write("")
+        
+        demo_table_data, demo_wrapped_labels, demo_y_s_vals, demo_y_m_vals = [], [], [], []
+        all_demo_opts = df[df['wave'] == "ממוצע שני הגלים"].apply(lambda x: "כללי" if x['demo_category'] == "כללי" else f"{x['demo_category']} - {x['demo_value']}", axis=1).unique()
+        
+        for demo_opt in all_demo_opts:
+            d_cat, d_val = ("כללי", "סהכ") if demo_opt == "כללי" else demo_opt.split(" - ", 1)
+            demo_df_f = df[(df['period'] == sel_p) & (df['wave'] == sel_w) & (df['demo_category'] == d_cat) & (df['demo_value'] == d_val)]
+            demo_plot_df = demo_df_f[(demo_df_f['question_text'] == sel_q) & (demo_df_f['answer_text'] == i24_answer_text)]
             
-            demo_table_data, demo_wrapped_labels, demo_y_s_vals, demo_y_m_vals = [], [], [], []
-            all_demo_opts = df[df['wave'] == "ממוצע שני הגלים"].apply(lambda x: "כללי" if x['demo_category'] == "כללי" else f"{x['demo_category']} - {x['demo_value']}", axis=1).unique()
-            
-            for demo_opt in all_demo_opts:
-                d_cat, d_val = ("כללי", "סהכ") if demo_opt == "כללי" else demo_opt.split(" - ", 1)
-                demo_df_f = df[(df['period'] == sel_p) & (df['wave'] == sel_w) & (df['demo_category'] == d_cat) & (df['demo_value'] == d_val)]
-                demo_plot_df = demo_df_f[(demo_df_f['question_text'] == sel_q) & (demo_df_f['answer_text'] == i24_answer_text)]
-                
-                if not demo_plot_df.empty:
-                    s_v = demo_plot_df[demo_plot_df['source'] == 'שילוב']['percentage'].values[0] if not demo_plot_df[demo_plot_df['source'] == 'שילוב'].empty else None
-                    m_v = demo_plot_df[demo_plot_df['source'] == 'מדרוג']['percentage'].values[0] if not demo_plot_df[demo_plot_df['source'] == 'מדרוג'].empty else None
-                    if s_v is not None and m_v is not None:
-                        demo_table_data.append((demo_opt, m_v - s_v))
-                        demo_wrapped_labels.append(f"<span style='display: inline-block; width: 100%; white-space: normal; text-align: center;'>{demo_opt}</span>")
-                        demo_y_s_vals.append(round(s_v, 1)); demo_y_m_vals.append(round(m_v, 1))
+            if not demo_plot_df.empty:
+                s_v = demo_plot_df[demo_plot_df['source'] == 'שילוב']['percentage'].values[0] if not demo_plot_df[demo_plot_df['source'] == 'שילוב'].empty else None
+                m_v = demo_plot_df[demo_plot_df['source'] == 'מדרוג']['percentage'].values[0] if not demo_plot_df[demo_plot_df['source'] == 'מדרוג'].empty else None
+                if s_v is not None and m_v is not None:
+                    demo_table_data.append((demo_opt, m_v - s_v))
+                    demo_wrapped_labels.append(f"<span style='display: inline-block; width: 100%; white-space: normal; text-align: center;'>{demo_opt}</span>")
+                    demo_y_s_vals.append(round(s_v, 1)); demo_y_m_vals.append(round(m_v, 1))
 
-            if demo_table_data:
-                fig_demo = go.Figure()
-                for idx, demo_lbl in enumerate(demo_wrapped_labels):
-                    fig_demo.add_trace(go.Scatter(x=[demo_y_s_vals[idx], demo_y_m_vals[idx]], y=[demo_lbl, demo_lbl], mode="lines", line=dict(color="#000", width=2), showlegend=False, hoverinfo="skip"))
-                fig_demo.add_trace(go.Scatter(x=demo_y_s_vals, y=demo_wrapped_labels, mode="markers+text", name="סקר שילוב", marker=dict(color='#2563eb', size=14, line=dict(color='white', width=2)), text=[f"<b>{val}%</b>" for val in demo_y_s_vals], textfont=dict(size=12, color='#2563eb', weight="bold"), textposition=["middle left" if demo_y_s_vals[idx] <= demo_y_m_vals[idx] else "middle right" for idx in range(len(demo_wrapped_labels))], hovertemplate="<b>סקר שילוב</b><br>אחוז: %{x}%<extra></extra>"))
-                fig_demo.add_trace(go.Scatter(x=demo_y_m_vals, y=demo_wrapped_labels, mode="markers+text", name="הוועדה למדרוג", marker=dict(color='#ea580c', size=14, line=dict(color='white', width=2)), text=[f"<b>{val}%</b>" for val in demo_y_m_vals], textfont=dict(size=12, color='#ea580c', weight="bold"), textposition=["middle right" if demo_y_m_vals[idx] >= demo_y_s_vals[idx] else "middle left" for idx in range(len(demo_wrapped_labels))], hovertemplate="<b>הוועדה למדרוג</b><br>אחוז: %{x}%<extra></extra>"))
-                
-                mx_demo = max(demo_y_s_vals + demo_y_m_vals, default=100) * 1.15
-                fig_demo.update_layout(
-                    margin=dict(l=125, r=20, t=20, b=20), paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
-                    height=max(250, len(demo_table_data) * 65), legend=dict(orientation="h", y=1.05, x=0.5, xanchor="center", yanchor="top"),
-                    xaxis=dict(side="top", range=[-1, mx_demo], showgrid=True, gridcolor="#f3f4f6", zeroline=False, ticksuffix="%"),
-                    yaxis=dict(side="left", categoryorder="array", categoryarray=demo_wrapped_labels[::-1], showticklabels=True, tickfont=dict(size=11, weight="bold"))
-                )
-                st.plotly_chart(fig_demo, use_container_width=True, config={'displayModeBar': False})
+        if demo_table_data:
+            fig_demo = go.Figure()
+            for idx, demo_lbl in enumerate(demo_wrapped_labels):
+                fig_demo.add_trace(go.Scatter(x=[demo_y_s_vals[idx], demo_y_m_vals[idx]], y=[demo_lbl, demo_lbl], mode="lines", line=dict(color="#000", width=2), showlegend=False, hoverinfo="skip"))
+            fig_demo.add_trace(go.Scatter(x=demo_y_s_vals, y=demo_wrapped_labels, mode="markers+text", name="סקר שילוב", marker=dict(color='#2563eb', size=14, line=dict(color='white', width=2)), text=[f"<b>{val}%</b>" for val in demo_y_s_vals], textfont=dict(size=12, color='#2563eb', weight="bold"), textposition=["middle left" if demo_y_s_vals[idx] <= demo_y_m_vals[idx] else "middle right" for idx in range(len(demo_wrapped_labels))], hovertemplate="<b>סקר שילוב</b><br>אחוז: %{x}%<extra></extra>"))
+            fig_demo.add_trace(go.Scatter(x=demo_y_m_vals, y=demo_wrapped_labels, mode="markers+text", name="הוועדה למדרוג", marker=dict(color='#ea580c', size=14, line=dict(color='white', width=2)), text=[f"<b>{val}%</b>" for val in demo_y_m_vals], textfont=dict(size=12, color='#ea580c', weight="bold"), textposition=["middle right" if demo_y_m_vals[idx] >= demo_y_s_vals[idx] else "middle left" for idx in range(len(demo_wrapped_labels))], hovertemplate="<b>הוועדה למדרוג</b><br>אחוז: %{x}%<extra></extra>"))
+            
+            mx_demo = max(demo_y_s_vals + demo_y_m_vals, default=100) * 1.15
+            fig_demo.update_layout(
+                margin=dict(l=125, r=20, t=20, b=20), paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
+                height=max(250, len(demo_table_data) * 65), legend=dict(orientation="h", y=1.05, x=0.5, xanchor="center", yanchor="top"),
+                xaxis=dict(side="top", range=[-1, mx_demo], showgrid=True, gridcolor="#f3f4f6", zeroline=False, ticksuffix="%"),
+                yaxis=dict(side="left", categoryorder="array", categoryarray=demo_wrapped_labels[::-1], showticklabels=True, tickfont=dict(size=11, weight="bold"))
+            )
+            st.plotly_chart(fig_demo, use_container_width=True, config={'displayModeBar': False})
