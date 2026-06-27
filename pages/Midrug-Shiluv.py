@@ -122,7 +122,7 @@ with chart_col:
             )
             st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
             
-            if table_data:
+if table_data:
                 col_count = len(table_data) + 1  # מספר העמודות גדל ב-1 בגלל עמודת התוויות
                 all_diffs = [diff for _, diff in table_data]
                 mean_diff = sum(all_diffs) / len(all_diffs) if all_diffs else 0
@@ -134,14 +134,7 @@ with chart_col:
                     html_code += f'<th class="custom-th">{ans}</th>'
                 html_code += "</tr></thead><tbody>"
                 
-                # שורה 1: תשובה (כותרת/טקסט התשובה)
-                html_code += "<tr>"
-                html_code += f'<td class="custom-td" style="font-weight: bold; background-color: #f9fafb;">תשובה</td>'
-                for ans, _ in table_data:
-                    html_code += f'<td class="custom-td">{ans}</td>'
-                html_code += "</tr>"
-                
-                # שורה 2: שינוי אבסולוטי
+                # שורה 1: שינוי אבסולוטי
                 html_code += "<tr>"
                 html_code += f'<td class="custom-td" style="font-weight: bold; background-color: #f9fafb;">שינוי אבסולוטי</td>'
                 for _, diff in table_data:
@@ -149,7 +142,7 @@ with chart_col:
                     html_code += f'<td class="custom-td {cls}">{"+" if diff > 0 else ""}{diff:.1f}%</td>'
                 html_code += "</tr>"
                 
-                # שורה 3: שינוי מחושב (שינוי יחסי)
+                # שורה 2: שינוי מחושב (שינוי יחסי)
                 html_code += "<tr>"
                 html_code += f'<td class="custom-td" style="font-weight: bold; background-color: #f9fafb;">שינוי מחושב</td>'
                 for _, diff in table_data:
