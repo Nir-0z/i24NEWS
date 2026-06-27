@@ -132,7 +132,7 @@ with chart_col:
                 if s_v is not None and m_v is not None:
                     fig.add_trace(go.Scatter(
                         x=[m_v, s_v], y=[wrapped_labels[i], wrapped_labels[i]], mode="lines", 
-                        line=dict(color="#d1d5db", width=2, dash="dot"), showlegend=False, hoverinfo="skip"
+                        line=dict(color="#000", width=2, dash="dot"), showlegend=False, hoverinfo="skip"
                     ))
             
             def add_points(source_filter, source_name):
