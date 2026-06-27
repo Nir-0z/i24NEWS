@@ -274,7 +274,7 @@ with chart_col:
             
             fig_sov.update_layout(
                 barmode='stack',
-                height=400,
+                height=300,
                 autosize=True,
                 bargap=0.5,
                 margin=dict(l=125, r=20, t=20, b=0),
