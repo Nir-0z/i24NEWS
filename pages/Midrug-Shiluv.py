@@ -62,64 +62,78 @@ with chart_col:
     with st.container(border=True):
         if labels:
             fig = go.Figure()
-            s_vals, m_vals = [], []
             
+            # קו מקווקו המחבר בין התוצאות לכל תשובה
             for ans in labels:
                 s_row = plot_df[(plot_df['answer_text'] == ans) & (plot_df['source'] == 'שילוב')]
                 m_row = plot_df[(plot_df['answer_text'] == ans) & (plot_df['source'] == 'מדרוג')]
                 
                 s_v = s_row['percentage'].values[0] if not s_row.empty else None
                 m_v = m_row['percentage'].values[0] if not m_row.empty else None
-                s_vals.append(s_v)
-                m_vals.append(m_v)
-
+                
                 if s_v is not None and m_v is not None:
                     fig.add_trace(go.Scatter(
                         x=[m_v, s_v], y=[ans, ans], mode="lines", 
                         line=dict(color="#d1d5db", width=2, dash="dot"), showlegend=False
                     ))
+            
+            # פונקציה להוספת הנקודות והטקסטים תוך מניעת חפיפה
+            def add_points_smart(source_filter, source_name, color):
+                x_vals = []
+                y_vals = []
+                txt_vals = []
+                txt_pos = []
+                hover_vals = []
+                
+                for ans in labels:
+                    row = plot_df[(plot_df['answer_text'] == ans) & (plot_df['source'] == source_filter)]
+                    val = row['percentage'].values[0] if not row.empty else None
                     
-            def add_points(vals, source_name, color, is_left):
-                # טקסט מוצמד תמיד: מימין לערך הנמוך, משמאל לערך הגבוה
-                texts = []
-                text_positions = []
-                for v in vals:
-                    texts.append(f"<b>{v}%</b>" if v is not None else "")
-                
-                for v, m in zip(vals, m_vals):
-                    if v is None:
-                        text_positions.append("middle right")
-                    elif is_left: # סקר שילוב
-                        text_positions.append("middle left")
-                    else: # מדרוג
-                        text_positions.append("middle right")
-
-                hover_texts = [
-                    f"<b>{source_name}</b><br>אחוז: {v}%<extra></extra>" if v is not None else "" 
-                    for v in vals
-                ]
-                
+                    if val is not None:
+                        x_vals.append(val)
+                        y_vals.append(ans)
+                        txt_vals.append(f"<b>{val}%</b>")
+                        hover_vals.append(f"<b>{source_name}</b><br>אחוז: {val}%<extra></extra>")
+                        
+                        # השוואה מול המקור השני כדי לקבוע מי גבוה/נמוך יותר באותה שאלה
+                        s_val = plot_df[(plot_df['answer_text'] == ans) & (plot_df['source'] == 'שילוב')]['percentage'].values[0] if not plot_df[(plot_df['answer_text'] == ans) & (plot_df['source'] == 'שילוב')].empty else -1
+                        m_val = plot_df[(plot_df['answer_text'] == ans) & (plot_df['source'] == 'מדרוג')]['percentage'].values[0] if not plot_df[(plot_df['answer_text'] == ans) & (plot_df['source'] == 'מדרוג')].empty else -1
+                        
+                        if s_val != -1 and m_val != -1:
+                            # הנמוך תמיד מימין לבולט, הגבוה תמיד משמאל לבולט
+                            if val == min(s_val, m_val):
+                                txt_pos.append("middle right")
+                            else:
+                                txt_pos.append("middle left")
+                        else:
+                            txt_pos.append("middle center")
+                    else:
+                        x_vals.append(None)
+                        y_vals.append(ans)
+                        txt_vals.append("")
+                        hover_vals.append("")
+                        txt_pos.append("middle center")
+                        
                 fig.add_trace(go.Scatter(
-                    x=vals, y=labels, mode="markers+text", name=source_name,
+                    x=x_vals, y=y_vals, mode="markers+text", name=source_name,
                     marker=dict(color=color, size=14, line=dict(color='white', width=2)),
-                    text=texts, textfont=dict(size=13, color=color),
-                    textposition=text_positions,
-                    hovertemplate=hover_texts
+                    text=txt_vals, textfont=dict(size=13, color=color),
+                    textposition=txt_pos, hovertemplate=hover_vals
                 ))
 
-            # שילוב מופיע ראשון (נקודה שמאלית/ימנית בהתאם לערך) ומדרוג שני
-            add_points(s_vals, 'סקר שילוב', '#2563eb', True)
-            add_points(m_vals, 'הוועדה למדרוג', '#ea580c', False)
+            # שילוב ולאחר מכן מדרוג
+            add_points_smart('שילוב', 'סקר שילוב', '#2563eb')
+            add_points_smart('מדרוג', 'הוועדה למדרוג', '#ea580c')
 
-            v_all = [v for v in s_vals + m_vals if v is not None]
+            v_all = plot_df['percentage'].dropna().tolist()
             mx = max(v_all, default=100)
             
             fig.update_layout(
                 # הגדלת ה-margin הימני כדי למנוע חיתוך של תוויות התשובות הארוכות
-                margin=dict(l=10, r=100, t=20, b=60), 
+                margin=dict(l=10, r=200, t=30, b=60), 
                 paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
-                height=max(350, len(labels)*60),
-                # הזזה ומרווח למקרא כדי שלא יפריע ללייבלים
+                height=max(350, len(labels)*70),
+                # מיקום מסודר למקרא בתחתית מבלי להפריע ללייבלים
                 legend=dict(orientation="h", y=-0.25, x=0.5, xanchor="center"),
                 xaxis=dict(
                     range=[mx*1.15, -(mx*0.3)], showgrid=True, gridcolor="#f3f4f6", 
