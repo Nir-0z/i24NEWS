@@ -20,12 +20,23 @@ st.markdown("""
             background-color: #f8f9fa !important;
         }
         
+        /* כרטיסים לבנים נקיים */
         div[data-testid="stVerticalBlockBorderWrapper"] {
             background-color: #ffffff !important;
             padding: 24px !important;
             border-radius: 12px !important; 
             border: none !important;
             box-shadow: 0px 2px 1px -1px rgba(0,0,0,0.05), 0px 1px 1px 0px rgba(0,0,0,0.03), 0px 1px 3px 0px rgba(0,0,0,0.03) !important;
+        }
+        
+        /* הפיכת כרטיס הסינון הראשון לסטיקי בגלילה ויישור התיבות */
+        div[data-testid="stVerticalBlockBorderWrapper"]:first-of-type {
+            position: sticky;
+            top: 3rem;
+            z-index: 999;
+            background: rgba(255, 255, 255, 0.98) !important;
+            backdrop-filter: blur(10px);
+            padding: 15px 24px !important;
         }
         
         h2 {
@@ -35,11 +46,14 @@ st.markdown("""
             padding-right: 15px;
         }
         
-        div[data-testid="column"] {
-            background-color: transparent !important;
-            padding: 0 !important;
-            border: none !important;
-            box-shadow: none !important;
+        /* יישור אגרסיבי לימין של כל רכיבי הבחירה והרשימות הנפתחות */
+        div[data-baseweb="select"] *, div[data-testid="stSelectbox"] * {
+            direction: rtl !important;
+            text-align: right !important;
+        }
+        div[data-baseweb="popover"], ul[role="listbox"], li[role="option"] {
+            direction: rtl !important;
+            text-align: right !important;
         }
         
         div[data-testid="stRadio"] label {
@@ -53,6 +67,18 @@ st.markdown("""
         }
         div[data-testid="stRadio"] label:hover {
             background-color: #f1f3f4 !important; 
+        }
+        
+        /* יישור הכותרת של אזור הפילטרים לאמצע השורה */
+        .filter-title {
+            display: flex;
+            align-items: center;
+            height: 100%;
+            font-weight: 700;
+            color: #202124;
+            font-size: 1.1em;
+            margin: 0;
+            padding-top: 25px;
         }
     </style>
 """, unsafe_allow_html=True)
@@ -70,30 +96,37 @@ df = load_data()
 
 st.markdown("<h2>📊 השוואת מדרוג מול סקר שילוב</h2>", unsafe_allow_html=True)
 
+# ==========================================
+# שורת סינון סטיקית באותה השורה
+# ==========================================
 with st.container(border=True):
-    st.markdown("<p style='font-weight: 700; color: #202124; margin-bottom: 10px; font-size: 1.1em;'>🎯 סינון נתונים</p>", unsafe_allow_html=True)
-    col_f1, col_f2, col_f3 = st.columns(3)
+    col_title, col_f1, col_f2, col_f3 = st.columns([0.8, 1.2, 1.2, 1.5], gap="small")
     
+    with col_title:
+        st.markdown("<p class='filter-title'>🎯 סינון נתונים</p>", unsafe_allow_html=True)
+        
     with col_f1:
-        selected_period = st.selectbox("ימי מדידה:", ["אמצע שבוע", "סוף שבוע"])
+        # דיפולט: אינדקס 0 (אמצע שבוע)
+        selected_period = st.selectbox("ימי מדידה:", ["אמצע שבוע", "סוף שבוע"], index=0)
     
     with col_f2:
         if selected_period == "אמצע שבוע":
             wave_options = ["גל 19 במאי", "גל 25 במאי", "חיבור שני הגלים"]
         else:
-            wave_options = ["17 במאי", "31 במאי", "חיבור שני הגלים"]
-        selected_wave = st.selectbox("גל מחקר:", wave_options)
+            wave_options = ["גל 17 במאי", "גל 31 במאי", "חיבור שני הגלים"]
+        # דיפולט: אינדקס 2 (חיבור שני הגלים)
+        selected_wave = st.selectbox("גל מחקר:", wave_options, index=2)
         
     with col_f3:
         if selected_wave == "חיבור שני הגלים":
             df_demo_src = df[(df['period'] == selected_period) & (df['wave'] == "חיבור שני הגלים")].copy()
             
-            # תיקון תצוגת הפילטר: אם זה "כללי וסהכ" הצג רק "כללי", אחרת הצג את השם המלא
             df_demo_src['demo_display'] = df_demo_src.apply(
                 lambda x: "כללי" if x['demo_category'] == "כללי" and x['demo_value'] == "סהכ" else f"{x['demo_category']} - {x['demo_value']}", axis=1
             )
             demo_options = df_demo_src['demo_display'].unique().tolist()
             
+            # דיפולט: כללי
             default_idx = demo_options.index("כללי") if "כללי" in demo_options else 0
             selected_demo = st.selectbox("פילוח דמוגרפי:", demo_options, index=default_idx)
             
@@ -102,7 +135,7 @@ with st.container(border=True):
             else:
                 sel_cat, sel_val = selected_demo.split(" - ", 1)
         else:
-            st.selectbox("פילוח דמוגרפי:", ["כללי (פילוח זמין בחיבור הגלים בלבד)"], disabled=True)
+            st.selectbox("פילוח דמוגרפי:", ["כללי (פילוח זמין בחיבור הגלים)"], disabled=True)
             sel_cat, sel_val = "כללי", "סהכ"
 
 df_filtered = df[(df['period'] == selected_period) & (df['wave'] == selected_wave) & (df['demo_category'] == sel_cat) & (df['demo_value'] == sel_val)]
@@ -116,11 +149,13 @@ with col_side:
         if not questions:
             st.warning("אין נתונים זמינים לחיתוך זה.")
             st.stop()
-        sel_q = st.radio("", questions, label_visibility="collapsed")
+        # דיפולט לשאלה הראשונה ברשימה
+        sel_q = st.radio("", questions, index=0, label_visibility="collapsed")
 
 with col_chart:
     with st.container(border=True):
-        st.markdown(f"<p style='font-size: 1.25em; font-weight: 700; color: #202124; margin-bottom: 25px; line-height: 1.4;'>{sel_q}</p>", unsafe_allow_html=True)
+        # תוספת אייקון לנוסח השאלה המלא
+        st.markdown(f"<p style='font-size: 1.25em; font-weight: 700; color: #202124; margin-bottom: 25px; line-height: 1.4;'>📋 {sel_q}</p>", unsafe_allow_html=True)
         
         plot_df = df_filtered[df_filtered['question_text'] == sel_q]
         answers = plot_df['answer_text'].drop_duplicates().tolist()
