@@ -5,10 +5,11 @@ import os
 
 st.set_page_config(layout="wide", page_title="השוואת מדרוג ושילוב")
 
+# סגנון קבוע בלבד
 st.markdown("""
 <style>
     * {direction: rtl!important; text-align: right!important;}
-    .stRadio > div {gap:1.5rem;}
+    .stRadio > div {padding:1.5rem;}
 </style>
 """, unsafe_allow_html=True)
 
@@ -52,13 +53,12 @@ menu_col, chart_col = st.columns([1.3, 2.5], gap="large")
 with menu_col:
     with st.container(border=True):
         st.markdown("### 📋 בחר שאלה לניתוח:")
-        sel_q = st.radio("", q_list)
+        sel_q = st.radio("", q_list, label_visibility="collapsed")
 
 plot_df = df_f[df_f['question_text'] == sel_q]
 labels = plot_df['answer_text'].drop_duplicates().tolist()
 
 with chart_col:
-    # עטיפת אזור התרשים בתוך container עם מסגרת
     with st.container(border=True):
         if labels:
             fig = go.Figure()
@@ -74,26 +74,61 @@ with chart_col:
                 m_vals.append(m_v)
 
                 if s_v is not None and m_v is not None:
-                    fig.add_trace(go.Scatter(x=[m_v, s_v], y=[ans, ans], mode="lines", line=dict(color="#d1d5db", width=2, dash="dot"), showlegend=False))
+                    fig.add_trace(go.Scatter(
+                        x=[m_v, s_v], y=[ans, ans], mode="lines", 
+                        line=dict(color="#d1d5db", width=2, dash="dot"), showlegend=False
+                    ))
                     
-            def add_points(vals, name, color, is_left):
+            def add_points(vals, source_name, color, is_left):
+                # טקסט מוצמד תמיד: מימין לערך הנמוך, משמאל לערך הגבוה
+                texts = []
+                text_positions = []
+                for v in vals:
+                    texts.append(f"<b>{v}%</b>" if v is not None else "")
+                
+                for v, m in zip(vals, m_vals):
+                    if v is None:
+                        text_positions.append("middle right")
+                    elif is_left: # סקר שילוב
+                        text_positions.append("middle left")
+                    else: # מדרוג
+                        text_positions.append("middle right")
+
+                hover_texts = [
+                    f"<b>{source_name}</b><br>אחוז: {v}%<extra></extra>" if v is not None else "" 
+                    for v in vals
+                ]
+                
                 fig.add_trace(go.Scatter(
-                    x=vals, y=labels, mode="markers+text", name=name,
+                    x=vals, y=labels, mode="markers+text", name=source_name,
                     marker=dict(color=color, size=14, line=dict(color='white', width=2)),
-                    text=[f"<b>{x}%</b>" if x is not None else "" for x in vals],
-                    textfont=dict(size=13, color=color, family="Assistant"),
-                    textposition="middle left" if is_left else "middle right"
+                    text=texts, textfont=dict(size=13, color=color),
+                    textposition=text_positions,
+                    hovertemplate=hover_texts
                 ))
 
+            # שילוב מופיע ראשון (נקודה שמאלית/ימנית בהתאם לערך) ומדרוג שני
             add_points(s_vals, 'סקר שילוב', '#2563eb', True)
             add_points(m_vals, 'הוועדה למדרוג', '#ea580c', False)
 
-            mx = max([v for v in s_vals + m_vals if v is not None], default=100)
+            v_all = [v for v in s_vals + m_vals if v is not None]
+            mx = max(v_all, default=100)
+            
             fig.update_layout(
-                margin=dict(l=10, r=200, t=10, b=50), paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
-                height=max(350, len(labels)*50), legend=dict(orientation="h", y=-0.2, x=0.5, xanchor="center"),
-                xaxis=dict(range=[mx*1.15, -(mx*0.3)], showgrid=True, gridcolor="#f3f4f6", zeroline=False, ticksuffix="%"),
-                yaxis=dict(side="right", categoryorder="array", categoryarray=labels[::-1], tickfont=dict(size=14, weight="bold"))
+                # הגדלת ה-margin הימני כדי למנוע חיתוך של תוויות התשובות הארוכות
+                margin=dict(l=10, r=100, t=20, b=60), 
+                paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
+                height=max(350, len(labels)*60),
+                # הזזה ומרווח למקרא כדי שלא יפריע ללייבלים
+                legend=dict(orientation="h", y=-0.25, x=0.5, xanchor="center"),
+                xaxis=dict(
+                    range=[mx*1.15, -(mx*0.3)], showgrid=True, gridcolor="#f3f4f6", 
+                    zeroline=False, ticksuffix="%"
+                ),
+                yaxis=dict(
+                    side="right", categoryorder="array", categoryarray=labels[::-1], 
+                    tickfont=dict(size=14, weight="bold")
+                )
             )
             st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
         else:
