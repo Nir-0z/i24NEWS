@@ -133,7 +133,7 @@ with chart_col:
             # --- בניית התרשים האנכי ---
             fig = go.Figure()
             
-            # עטיפת התשובות כך שיפרסו 100% לרוחב ללא הגבלת פיקסלים קשיחה
+            # עטיפת התשובות כך שיוכלו לרדת למספר שורות בציר ה-X
             wrapped_labels = [f"<span style='display: inline-block; width: 100%; white-space: normal; text-align: center;'>{lbl}</span>" for lbl in labels]
             
             # שרטוט הקווים המחברים (אנכיים) רק לתשובות שקיימות בשני המקורות
@@ -207,7 +207,7 @@ with chart_col:
             my = true_max * 1.15
             
             fig.update_layout(
-                margin=dict(l=80, r=80, t=20, b=20), # שוליים צדדיים מורחבים לפריסה מלאה ב-100% רוחב
+                margin=dict(l=20, r=20, t=20, b=20), 
                 paper_bgcolor='rgba(0,0,0,0)', 
                 plot_bgcolor='rgba(0,0,0,0)',
                 height=380, 
@@ -220,16 +220,17 @@ with chart_col:
                 ),
                 xaxis=dict(
                     side="bottom",
-                    showticklabels=False,
-                    showgrid=False,
+                    showticklabels=False, # מכבה את כותרות התשובות שבתחתית
+                    showgrid=True,        # מדליק את הקווים האנכיים המפרידים בין התשובות
+                    gridcolor="#f3f4f6",  # צבע קו רשת עדין ותואם
                     zeroline=False
                 ),
                 yaxis=dict(
                     side="left", 
                     range=[-2, my],
-                    showticklabels=False, 
-                    showgrid=True,
-                    gridcolor="#f3f4f6",
+                    showticklabels=False, # מכבה את מספרי אחוזי הגובה בצד שמאל
+                    showgrid=True,        # מדליק את קווי הרשת האופקיים שמראים את גובה האחוזים
+                    gridcolor="#f3f4f6",  # צבע קו רשת עדין ותואם
                     zeroline=False
                 )
             )
@@ -237,7 +238,7 @@ with chart_col:
             # הצגת התרשים
             st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
 
-            # --- הזרקת טבלת HTML (מתחת לתרשים) ---
+            # --- הזרקת טבלת HTML (עברה לסוף, מתחת לתרשים) ---
             if table_data:
                 col_count = len(table_data)
                 
@@ -246,8 +247,8 @@ with chart_col:
                     .custom-table {{
                         width: 100% !important;
                         border-collapse: collapse !important;
-                        margin-top: 15px !important;
-                        margin-bottom: 10px !important;
+                        margin-top: 10px !important;
+                        margin-bottom: 25px !important;
                         font-family: inherit !important;
                         direction: ltr !important;
                     }}
