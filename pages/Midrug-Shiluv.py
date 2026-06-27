@@ -208,30 +208,29 @@ with chart_col:
             my = true_max * 1.15
             
             fig.update_layout(
-                margin=dict(l=60, r=40, t=20, b=20), 
+                margin=dict(l=40, r=40, t=20, b=20), # מרווחים מינימליים לאחר הסרת הצירים
                 paper_bgcolor='rgba(0,0,0,0)', 
                 plot_bgcolor='rgba(0,0,0,0)',
-                height=550,
+                height=380, # גובה קומפקטי יותר שמתאים לתרשים נקי
                 legend=dict(
                     orientation="h", 
-                    y=0.5, # מקראה למעלה, צמודה לתרשים
+                    y=0.5, 
                     x=0.5, 
                     xanchor="center",
-                    yanchor="bottom"
+                    yanchor="top"
                 ),
                 xaxis=dict(
-                    side="bottom", 
-                    categoryorder="array", 
-                    categoryarray=wrapped_labels,
-                    tickfont=dict(size=11, weight="bold")
+                    side="bottom",
+                    showticklabels=False, # הסתרת תוויות התשובות שבתחתית
+                    showgrid=False,       # הסרת קווי הרשת האנכיים
+                    zeroline=False
                 ),
                 yaxis=dict(
                     side="left", 
                     range=[-2, my],
-                    showgrid=True, 
-                    gridcolor="#f3f4f6", 
-                    zeroline=False, 
-                    ticksuffix="%"
+                    showticklabels=False, # הסתרת אחוזי ציר ה-Y בצד שמאל
+                    showgrid=False,       # הסרת קווי הרשת האופקיים (אם תרצה להשאיר רשת עדינה, שנה ל-True)
+                    zeroline=False
                 )
             )
             
