@@ -108,19 +108,14 @@ plot_df = df_f[df_f['question_text'] == sel_q]
 labels = plot_df['answer_text'].drop_duplicates().tolist()
 
 with chart_col:
-    # כרטיס המציג את נתיב הסינון בצורה בולטת מעל הגרף הראשי
+    # כרטיס נפרד המציג את מראה המיקום בחלק העליון
     if labels:
         demo_display = sel_d if 'sel_d' in locals() and sel_w == "ממוצע שני הגלים" else "כללי"
-        st.markdown(f"""
-            <div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px 16px; background-color: #f9fafb; margin-bottom: 12px; display: flex; align-items: center;">
-                <span style="font-size: 18px; margin-left: 10px;">🗺️</span>
-                <span style="font-size:13px; font-weight:bold; color:#374151;">נתיב סינון נוכחי: &nbsp;{sel_p} &nbsp; &gt; &nbsp; {sel_w} &nbsp; &gt; &nbsp; {demo_display}</span>
-            </div>
-        """, unsafe_allow_html=True)
+        st.markdown(f"<div style='border: 1px solid #e5e7eb; border-radius: 8px; padding: 8px 12px; background-color: #f9fafb; font-size:12px; font-weight:bold; color:#6b7280; margin-bottom:12px;'>{sel_p} &nbsp; &gt; &nbsp; {sel_w} &nbsp; &gt; &nbsp; {demo_display}</div>", unsafe_allow_html=True)
         
     with st.container(border=True):
         if labels:
-            st.markdown(f"### 📈 ניתוח ותצוגת נתונים")
+            st.markdown(f"### {sel_q}")
             st.write("")
             
             # --- הכנת נתוני הטבלה ---
@@ -258,7 +253,7 @@ if len(available_channels) > 1:
             
             fig_sov = go.Figure()
             
-            for idx, (source_name, source_key) in enumerate([("הוועדה למדרוג", "מדרוג"), ("סקר שילוב", "སקר שילוב")]):
+            for idx, (source_name, source_key) in enumerate([("הוועדה למדרוג", "מדרוג"), ("סקר שילוב", "שילוב")]):
                 source_data = plot_df[plot_df['source'] == source_key]
                 
                 channel_values = []
