@@ -122,7 +122,7 @@ with chart_col:
             )
             st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
             
-if table_data:
+            if table_data:
                 col_count = len(table_data) + 1  # מספר העמודות גדל ב-1 בגלל עמודת התוויות
                 all_diffs = [diff for _, diff in table_data]
                 mean_diff = sum(all_diffs) / len(all_diffs) if all_diffs else 0
