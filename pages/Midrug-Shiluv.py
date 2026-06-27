@@ -23,8 +23,8 @@ st.markdown("""
     
     /* הוספת מרווח בין כפתור הבחירה העגול לטקסט שמופיע משמאלו */
     .stRadio label input[type="radio"] {
-        margin-left: 15px !important; /* מרחיק את העיגול ימינה מהקצה, והטקסט יקבל מרווח ממנו */
-        margin-right: 0 !important;
+        margin-right: 15px !important; /* מרחיק את העיגול ימינה מהקצה, והטקסט יקבל מרווח ממנו */
+        margin-left: 0 !important;
     }
     
     /* הרחקת כותרת/נוסח השאלה מכפתור הבחירה הראשון ברשימה */
