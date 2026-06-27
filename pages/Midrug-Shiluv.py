@@ -118,8 +118,8 @@ with chart_col:
             st.markdown(f"### {sel_q}")
             st.write("")
             
-            # --- בניית הטבלה (תשובות בשורה 1, פער בשורה 2 ממורכז וללא אייקונים) ---
-            table_data = {}
+            # --- בניית נתוני הטבלה ---
+            table_data = []
             for ans in labels:
                 s_row = plot_df[(plot_df['answer_text'] == ans) & (plot_df['source'] == 'שילוב')]
                 m_row = plot_df[(plot_df['answer_text'] == ans) & (plot_df['source'] == 'מדרוג')]
@@ -127,39 +127,85 @@ with chart_col:
                 s_v = s_row['percentage'].values[0] if not s_row.empty else None
                 m_v = m_row['percentage'].values[0] if not m_row.empty else None
                 
-                # מציגים פערים רק לתשובות שקיימות בשני המקורות
                 if s_v is not None and m_v is not None:
-                    # חישוב הפער המבוקש: מדרוג פחות שילוב
                     diff = m_v - s_v
-                    table_data[ans] = diff
+                    table_data.append((ans, diff))
             
+            # --- הזרקת טבלת HTML מעוצבת וממורכזת דרך CSS ---
             if table_data:
                 st.markdown("##### עד כמה הנתונים נמוכים/גבוהים ביחס למדרוג")
                 
-                # יצירת DataFrame ממילון הפערים
-                df_diff = pd.DataFrame(table_data, index=['']).T
+                html_code = """
+                <style>
+                    .custom-table {
+                        width: 100% !important;
+                        border-collapse: collapse !important;
+                        margin-bottom: 25px !important;
+                        font-family: inherit !important;
+                    }
+                    .custom-th, .custom-td {
+                        border: 1px solid #e5e7eb !important;
+                        padding: 12px 8px !important;
+                        text-align: center !important;
+                        vertical-align: middle !important;
+                    }
+                    .custom-th {
+                        background-color: #f3f4f6 !important;
+                        font-weight: bold !important;
+                        color: #1f2937 !important;
+                        font-size: 14px !important;
+                    }
+                    .pos-val {
+                        color: green !important;
+                        font-weight: bold !important;
+                        font-size: 14px !important;
+                    }
+                    .neg-val {
+                        color: red !important;
+                        font-weight: bold !important;
+                        font-size: 14px !important;
+                    }
+                    .zero-val {
+                        color: #374151 !important;
+                        font-weight: bold !important;
+                        font-size: 14px !important;
+                    }
+                </style>
+                <table class="custom-table">
+                    <thead>
+                        <tr>
+                """
                 
-                # פונקציית עיצוב צבעים מותנית ליישור למרכז
-                def color_diff(val):
-                    if val > 0:
-                        return 'color: green; font-weight: bold; text-align: center;'
-                    elif val < 0:
-                        return 'color: red; font-weight: bold; text-align: center;'
-                    return 'color: black; font-weight: bold; text-align: center;'
-
-                # פונקציה להצגת האחוזים עם סימן פלוס/מינוס
-                def format_diff(val):
-                    return f"+{val:.1f}%" if val > 0 else f"{val:.1f}%"
-
-                # החלת העיצוב על התאים בטבלה
-                styled_table = df_diff.style.map(color_diff).format(format_diff)
+                # שורה 1: התשובות
+                for ans, _ in table_data:
+                    html_code += f'<th class="custom-th">{ans}</th>'
+                    
+                html_code += """
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                """
                 
-                # הצגת הטבלה המעוצבת והממורכזת
-                st.dataframe(
-                    styled_table, 
-                    use_container_width=True,
-                    hide_index=False
-                )
+                # שורה 2: הפערים
+                for _, diff in table_data:
+                    if diff > 0:
+                        val_str = f"+{diff:.1f}%"
+                        html_code += f'<td class="custom-td pos-val">{val_str}</td>'
+                    elif diff < 0:
+                        val_str = f"{diff:.1f}%"
+                        html_code += f'<td class="custom-td neg-val">{val_str}</td>'
+                    else:
+                        val_str = f"{diff:.1f}%"
+                        html_code += f'<td class="custom-td zero-val">{val_str}</td>'
+                        
+                html_code += """
+                        </tr>
+                    </tbody>
+                </table>
+                """
+                
+                st.markdown(html_code, unsafe_allow_html=True)
                 st.write("")
             # --------------------------------------------------------
             
