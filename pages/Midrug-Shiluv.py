@@ -133,7 +133,7 @@ with chart_col:
             # --- בניית התרשים האנכי ---
             fig = go.Figure()
             
-            # עטיפת התשובות כך שיוכלו לרדת למספר שורות בציר ה-X
+            # עטיפת התשובות כך שיפרסו 100% לרוחב ללא הגבלת פיקסלים קשיחה
             wrapped_labels = [f"<span style='display: inline-block; width: 100%; white-space: normal; text-align: center;'>{lbl}</span>" for lbl in labels]
             
             # שרטוט הקווים המחברים (אנכיים) רק לתשובות שקיימות בשני המקורות
@@ -207,7 +207,7 @@ with chart_col:
             my = true_max * 1.15
             
             fig.update_layout(
-                margin=dict(l=20, r=20, t=20, b=20), 
+                margin=dict(l=80, r=80, t=20, b=20), # שוליים צדדיים מורחבים לפריסה מלאה ב-100% רוחב
                 paper_bgcolor='rgba(0,0,0,0)', 
                 plot_bgcolor='rgba(0,0,0,0)',
                 height=380, 
@@ -220,17 +220,16 @@ with chart_col:
                 ),
                 xaxis=dict(
                     side="bottom",
-                    showticklabels=False, # מכבה את כותרות התשובות שבתחתית
-                    showgrid=True,        # מדליק את הקווים האנכיים המפרידים בין התשובות
-                    gridcolor="#f3f4f6",  # צבע קו רשת עדין ותואם
+                    showticklabels=False,
+                    showgrid=False,
                     zeroline=False
                 ),
                 yaxis=dict(
                     side="left", 
                     range=[-2, my],
-                    showticklabels=False, # מכבה את מספרי אחוזי הגובה בצד שמאל
-                    showgrid=True,        # מדליק את קווי הרשת האופקיים שמראים את גובה האחוזים
-                    gridcolor="#f3f4f6",  # צבע קו רשת עדין ותואם
+                    showticklabels=False, 
+                    showgrid=True,
+                    gridcolor="#f3f4f6",
                     zeroline=False
                 )
             )
@@ -238,7 +237,7 @@ with chart_col:
             # הצגת התרשים
             st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
 
-            # --- הזרקת טבלת HTML (עברה לסוף, מתחת לתרשים) ---
+            # --- הזרקת טבלת HTML (מתחת לתרשים) ---
             if table_data:
                 col_count = len(table_data)
                 
@@ -247,8 +246,8 @@ with chart_col:
                     .custom-table {{
                         width: 100% !important;
                         border-collapse: collapse !important;
-                        margin-top: 10px !important;
-                        margin-bottom: 25px !important;
+                        margin-top: 15px !important;
+                        margin-bottom: 10px !important;
                         font-family: inherit !important;
                         direction: ltr !important;
                     }}
@@ -305,3 +304,172 @@ with chart_col:
 
         else:
             st.info("אין נתונים להצגת תרשים עבור שאלה זו.")
+
+# ==============================================================================
+# --- כרטיס חדש: תרשים ממוקד i24news לפי פילוחים דמוגרפיים (מוצג רק בממוצע גלים) ---
+# ==============================================================================
+if sel_w == "ממוצע שני הגלים" and "i24news" in labels:
+    st.write("") # מרווח קל בין הקונטיינרים
+    with chart_col:
+        with st.container(border=True):
+            st.markdown(f"<p style='font-size:12px; font-weight:bold; color:#6b7280; margin-bottom:4px;'>{sel_p} &nbsp; &gt; &nbsp; {sel_w} &nbsp; &gt; &nbsp; פילוח דמוגרפי</p>", unsafe_allow_html=True)
+            st.markdown(f"### {sel_q} &nbsp;–&nbsp; i24news")
+            st.write("")
+            
+            # סינון הדמוגרפיות שבהן קיימת התשובה i24news
+            demo_table_data = []
+            demo_x_vals = []
+            demo_y_s_vals = []
+            demo_y_m_vals = []
+            
+            # רצים על כלל הפילוחים הדמוגרפיים הזמינים ב"ממוצע שני הגלים"
+            all_demo_opts = df[df['wave'] == "ממוצע שני הגלים"].apply(
+                lambda x: "כללי" if x['demo_category'] == "כללי" else f"{x['demo_category']} - {x['demo_value']}", 
+                axis=1
+            ).unique()
+            
+            for demo_opt in all_demo_opts:
+                if demo_opt == "כללי":
+                    d_cat, d_val = "כללי", "סהכ"
+                else:
+                    d_cat, d_val = demo_opt.split(" - ", 1)
+                    
+                # שליפת הנתונים לסינון הנוכחי עבור השאלה ועבור התשובה i24news
+                demo_df_f = df[(df['period'] == sel_p) & (df['wave'] == sel_w) & (df['demo_category'] == d_cat) & (df['demo_value'] == d_val)]
+                demo_plot_df = demo_df_f[(demo_df_f['question_text'] == sel_q) & (demo_df_f['answer_text'] == "i24news")]
+                
+                if not demo_plot_df.empty:
+                    s_row = demo_plot_df[demo_plot_df['source'] == 'שילוב']
+                    m_row = demo_plot_df[demo_plot_df['source'] == 'מדרוג']
+                    
+                    s_v = s_row['percentage'].values[0] if not s_row.empty else None
+                    m_v = m_row['percentage'].values[0] if not m_row.empty else None
+                    
+                    if s_v is not None and m_v is not None:
+                        diff_val = m_v - s_v
+                        demo_table_data.append((demo_opt, diff_val))
+                        
+                        demo_x_vals.append(f"<span style='display: inline-block; width: 100%; white-space: normal; text-align: center;'>{demo_opt}</span>")
+                        demo_y_s_vals.append(round(s_v, 1))
+                        demo_y_m_vals.append(round(m_v, 1))
+
+            if demo_x_vals:
+                fig_demo = go.Figure()
+                
+                # קווים מקשרים בין שילוב למדרוג עבור כל דמוגרפיה
+                for idx, demo_lbl in enumerate(demo_x_vals):
+                    fig_demo.add_trace(go.Scatter(
+                        x=[demo_lbl, demo_lbl], y=[demo_y_m_vals[idx], demo_y_s_vals[idx]], mode="lines", 
+                        line=dict(color="#000", width=2), showlegend=False, hoverinfo="skip"
+                    ))
+
+                # הוספת הנקודות לשילוב
+                fig_demo.add_trace(go.Scatter(
+                    x=demo_x_vals, y=demo_y_s_vals, mode="markers+text", name="סקר שילוב",
+                    marker=dict(color='#2563eb', size=14, line=dict(color='white', width=2)),
+                    text=[f"<b>{val}%</b>" for val in demo_y_s_vals],
+                    textfont=dict(size=12, color='#2563eb', weight="bold"),
+                    textposition=[
+                        "top center" if demo_y_s_vals[idx] >= demo_y_m_vals[idx] else "bottom center" 
+                        for idx in range(len(demo_x_vals))
+                    ],
+                    hovertemplate="<b>סקר שילוב</b><br>אחוז: %{y}%<extra></extra>"
+                ))
+
+                # הוספת הנקודות למדרוג
+                fig_demo.add_trace(go.Scatter(
+                    x=demo_x_vals, y=demo_y_m_vals, mode="markers+text", name="הוועדה למדרוג",
+                    marker=dict(color='#ea580c', size=14, line=dict(color='white', width=2)),
+                    text=[f"<b>{val}%</b>" for val in demo_y_m_vals],
+                    textfont=dict(size=12, color='#ea580c', weight="bold"),
+                    textposition=[
+                        "bottom center" if demo_y_m_vals[idx] <= demo_y_s_vals[idx] else "top center" 
+                        for idx in range(len(demo_x_vals))
+                    ],
+                    hovertemplate="<b>הוועדה למדרוג</b><br>אחוז: %{y}%<extra></extra>"
+                ))
+
+                # חישוב תקרה דינמית לתרשים הדמוגרפיות
+                all_demo_values = demo_y_s_vals + demo_y_m_vals
+                demo_max = max(all_demo_values, default=100)
+                my_demo = demo_max * 1.15
+
+                fig_demo.update_layout(
+                    margin=dict(l=80, r=80, t=20, b=20),
+                    paper_bgcolor='rgba(0,0,0,0)', 
+                    plot_bgcolor='rgba(0,0,0,0)',
+                    height=380, 
+                    legend=dict(
+                        orientation="h", 
+                        y=1.1, 
+                        x=0.5, 
+                        xanchor="center",
+                        yanchor="top"
+                    ),
+                    xaxis=dict(
+                        side="bottom",
+                        showticklabels=False,
+                        showgrid=False,
+                        zeroline=False
+                    ),
+                    yaxis=dict(
+                        side="left", 
+                        range=[-2, my_demo],
+                        showticklabels=False, 
+                        showgrid=True,
+                        gridcolor="#f3f4f6",
+                        zeroline=False
+                    )
+                )
+
+                st.plotly_chart(fig_demo, use_container_width=True, config={'displayModeBar': False})
+
+                # --- טבלת פירוט לפילוחים הדמוגרפיים של i24news ---
+                demo_col_count = len(demo_table_data)
+                demo_html = f"""
+                <style>
+                    .demo-table {{
+                        width: 100% !important;
+                        border-collapse: collapse !important;
+                        margin-top: 15px !important;
+                        margin-bottom: 10px !important;
+                        font-family: inherit !important;
+                        direction: ltr !important;
+                    }}
+                    .demo-th, .demo-td {{
+                        border: 1px solid #e5e7eb !important;
+                        padding: 12px 8px !important;
+                        text-align: center !important;
+                        vertical-align: middle !important;
+                        direction: ltr !important;
+                        width: calc(100% / {demo_col_count}) !important;
+                        box-sizing: border-box !important;
+                    }}
+                    .demo-th {{
+                        background-color: #f3f4f6 !important;
+                        font-weight: bold !important;
+                        color: #1f2937 !important;
+                        font-size: 14px !important;
+                    }}
+                    .d-pos {{ color: green !important; font-weight: bold !important; }}
+                    .d-neg {{ color: red !important; font-weight: bold !important; }}
+                    .d-zero {{ color: #374151 !important; font-weight: bold !important; }}
+                </style>
+                <table class="demo-table">
+                    <thead>
+                        <tr>
+                """
+                for d_lbl, _ in demo_table_data:
+                    demo_html += f'<th class="demo-th">{d_lbl}</th>'
+                demo_html += "</tr></thead><tbody><tr>"
+                
+                for _, d_diff in demo_table_data:
+                    if d_diff > 0:
+                        demo_html += f'<td class="demo-td d-pos">+{d_diff:.1f}%</td>'
+                    elif d_diff < 0:
+                        demo_html += f'<td class="demo-td d-neg">{d_diff:.1f}%</td>'
+                    else:
+                        demo_html += f'<td class="demo-td d-zero">{d_diff:.1f}%</td>'
+                        
+                demo_html += "</tr></tbody></table>"
+                st.markdown(demo_html, unsafe_allow_html=True)
