@@ -208,13 +208,13 @@ with chart_col:
             my = true_max * 1.15
             
             fig.update_layout(
-                margin=dict(l=60, r=40, t=40, b=100), 
+                margin=dict(l=60, r=40, t=20, b=20), 
                 paper_bgcolor='rgba(0,0,0,0)', 
                 plot_bgcolor='rgba(0,0,0,0)',
                 height=550,
                 legend=dict(
                     orientation="h", 
-                    y=0, # מקראה למעלה, צמודה לתרשים
+                    y=1.0, # מקראה למעלה, צמודה לתרשים
                     x=0.5, 
                     xanchor="center",
                     yanchor="bottom"
