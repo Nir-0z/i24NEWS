@@ -54,14 +54,15 @@ with menu_col:
     if not q_list: 
         st.warning("אין נתונים עבור הסינון שנבחר.")
         st.stop()
-    #########################################
+#########################################
     # תפריט צדדי - בחירת שאלה
     #########################################
     with st.container(border=True):
-         st.markdown("### 📋 בחירת שאלה")
-         sel_q = st.radio("", q_list, index=0, label_visibility="collapsed")
-         plot_df = df_f[df_f['question_text'] == sel_q]
-         labels = plot_df['answer_text'].drop_duplicates().tolist()
+        st.markdown("### 📋 בחירת שאלה")
+        sel_q = st.radio("", q_list, index=0, label_visibility="collapsed")
+
+plot_df = df_f[df_f['question_text'] == sel_q]
+labels = plot_df['answer_text'].unique().tolist()
 
 with chart_col:
     #########################################
