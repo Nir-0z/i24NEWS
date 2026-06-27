@@ -350,8 +350,7 @@ if sel_w == "ממוצע שני הגלים" and has_i24:
                     if s_v is not None and m_v is not None:
                         diff_val = m_v - s_v
                         demo_table_data.append((demo_opt, diff_val))
-                        # עטיפת תוויות הדמוגרפיה לרוחב מלא ב-Y
-                        demo_wrapped_labels.append(f"<span style='display: inline-block; width: 100%; white-space: normal; text-align: right;'>{demo_opt}</span>")
+                        demo_wrapped_labels.append(f"<span style='display: inline-block; width: 100%; white-space: normal; text-align: center;'>{demo_opt}</span>")
                         demo_y_s_vals.append(round(s_v, 1))
                         demo_y_m_vals.append(round(m_v, 1))
 
@@ -361,7 +360,7 @@ if sel_w == "ממוצע שני הגלים" and has_i24:
                 
                 with t_side:
                     # בניית טבלת LTR אנכית
-demo_html = """
+                    demo_html = """
                     <style>
                         .demo-table {
                             width: 100% !important;
@@ -410,7 +409,6 @@ demo_html = """
                             val_str = f"{d_diff:.1f}%"
                             val_class = "d-zero"
                             
-                        # --- כאן בוצע התיקון: הוספת תגיות tr וסגירתן בצורה נכונה לכל שורה ---
                         demo_html += f"""
                             <tr>
                                 <td class="demo-td {val_class}">{val_str}</td>
