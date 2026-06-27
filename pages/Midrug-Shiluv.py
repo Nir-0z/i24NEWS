@@ -17,24 +17,37 @@ st.markdown("""
         border-bottom: 1px solid #f3f4f6;
         display: flex !important;
         align-items: center !important;
-        flex-direction: row !important; /* כפתור הרדיו מימין, הטקסט משמאלו */
+        flex-direction: row !important;
         justify-content: flex-start !important;
     }
     
-    /* ריווח כפתור הבחירה העגול והרחקתו שמאלה מהטקסט שצמוד אליו */
     .stRadio label input[type="radio"] {
         margin-left: 0 !important;
         margin-right: 5px !important;
     }
     
-    /* הוספת מרווח מפורש בין כפתור הרדיו לבין הטקסט בלייבל */
     .stRadio label div[data-testid="stMarkdownContainer"] {
         margin-right: 15px !important;
     }
     
-    /* הרחקת כותרת/נוסח השאלה מכפתור הבחירה הראשון ברשימה */
     div.row-widget.stRadio > div > label:first-of-type {
         margin-bottom: 10px;
+    }
+
+    /* תיקון גורף לקוביות הפילטרים - מאלץ את התווית והתיבה הנפתחת לשבת בדיוק באותו גובה אמצע (Middle) */
+    div[data-testid="column"] > div.stSelectbox, 
+    div[data-testid="column"] > p,
+    div[data-testid="column"] > div > p {
+        margin-bottom: 0 !important;
+        display: flex !important;
+        align-items: center !important;
+    }
+
+    /* תצוגה כללית לעמודות הסינון ליישור מושלם */
+    div[data-testid="column"] {
+        display: flex !important;
+        align-items: center !important;
+        min-height: 45px; /* גובה מינימלי תואם לתיבות */
     }
 
     /* דריסת כיווניות עבור אזור התרשים בלבד למניעת בריחת טקסטים */
@@ -47,16 +60,6 @@ st.markdown("""
         direction: ltr !important;
         text-align: left !important;
     }
-    /* הוספת קלאס לייבל גורף שמשתלב באלמנטים ומרים אותם לגובה מדויק */
-.filter-label-wrapper {
-    display: flex;
-    align-items: center;
-    height: 100%;
-    font-weight: 600;
-    font-size: 14px;
-    color: #374151;
-    margin-bottom: 0px !important; /* מאפס שוליים שגורמים לטקסט לצנוח */
-}
 </style>
 """, unsafe_allow_html=True)
 
