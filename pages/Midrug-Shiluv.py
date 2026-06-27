@@ -134,7 +134,7 @@ with chart_col:
             fig = go.Figure()
             
             # עטיפת התשובות כך שיוכלו לרדת למספר שורות בציר ה-X
-            wrapped_labels = [f"<span style='display: inline-block; width: 150px; white-space: normal; text-align: center;'>{lbl}</span>" for lbl in labels]
+            wrapped_labels = [f"<span style='display: inline-block; width: 100%; white-space: normal; text-align: center;'>{lbl}</span>" for lbl in labels]
             
             # שרטוט הקווים המחברים (אנכיים) רק לתשובות שקיימות בשני המקורות
             for i, ans in enumerate(labels):
@@ -207,7 +207,7 @@ with chart_col:
             my = true_max * 1.15
             
             fig.update_layout(
-                margin=dict(l=40, r=40, t=20, b=20), 
+                margin=dict(l=20, r=20, t=20, b=20), 
                 paper_bgcolor='rgba(0,0,0,0)', 
                 plot_bgcolor='rgba(0,0,0,0)',
                 height=380, 
