@@ -115,10 +115,11 @@ with chart_col:
             demo_display = sel_d if 'sel_d' in locals() and sel_w == "חיבור שני הגלים" else "כללי"
             st.markdown(f"<p style='font-size:12px; font-weight:bold; color:#6b7280; margin-bottom:4px;'>{sel_p} &nbsp; &gt; &nbsp; {sel_w} &nbsp; &gt; &nbsp; {demo_display}</p>", unsafe_allow_html=True)
             
-            st.markdown(f"### 📋 {sel_q}")
+            # הוסר האייקון מכותרת השאלה
+            st.markdown(f"### {sel_q}")
             st.write("")
             
-            # --- בניית הטבלה המבוקשת (תשובות בשורה 1, פער בשורה 2 ללא תווית עמודה) ---
+            # --- בניית הטבלה (תשובות בשורה 1, פער בשורה 2 ללא תווית עמודה וללא אייקון) ---
             table_data = {}
             for ans in labels:
                 s_row = plot_df[(plot_df['answer_text'] == ans) & (plot_df['source'] == 'שילוב')]
@@ -134,7 +135,8 @@ with chart_col:
                     table_data[ans] = diff
             
             if table_data:
-                st.markdown("##### 📉 פערים באחוזים (מדרוג פחות שילוב)")
+                # שונתה הכותרת לנוסח החדש ללא אייקון
+                st.markdown("##### עד כמה הנתונים נמוכים/גבוהים ביחס למדרוג")
                 
                 # יצירת DataFrame שבו השורות הן התשובות והעמודה היא הפער
                 df_diff = pd.DataFrame.from_dict(table_data, orient='index', columns=[''])
@@ -235,7 +237,7 @@ with chart_col:
                 margin=dict(l=280, r=40, t=60, b=100), 
                 paper_bgcolor='rgba(0,0,0,0)', 
                 plot_bgcolor='rgba(0,0,0,0)',
-                height=max(450, len(labels)*60),
+                height=max(450, len(labels)*75),
                 legend=dict(
                     orientation="h", 
                     y=1.25,
