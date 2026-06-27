@@ -67,13 +67,13 @@ plot_df = df_f[df_f['question_text'] == sel_q]
 labels = plot_df['answer_text'].drop_duplicates().tolist()
 
 with chart_col:
+
     #########################################
     # כרטיס ראשון - סקר מול מדרוג: תרשים
     #########################################
     with st.container(border=True):
         if labels:
             st.markdown(f"### 📈 סקר מכון שילוב מול נתוני ועדת המדרוג")
-            st.write("")
             
             table_data = []
             for ans in labels:
@@ -83,7 +83,7 @@ with chart_col:
                     table_data.append((ans, m_val[0] - s_val[0]))
 
             fig = go.Figure()
-            wrapped_labels = [f"<span style='display: inline-block; width: 100%; white-space: normal; text-align: center;'>{lbl}</span>" for lbl in labels]
+            wrapped_labels = labels
             
             for i, ans in enumerate(labels):
                 s_val = plot_df[(plot_df['answer_text'] == ans) & (plot_df['source'] == 'שילוב')]['percentage'].values
