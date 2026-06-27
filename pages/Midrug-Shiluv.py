@@ -41,24 +41,29 @@ st.title("📊 השוואת מדרוג מול סקר שילוב")
 # 3. אזור הפילטרים המובנה (ללא טריקים)
 # ==========================================
 with st.container(border=True):
-    # חלוקה אופקית ל-4 עמודות ראשיות (כותרת סינון + 3 פילטרים)
-    f_title, f_col1, f_col2, f_col3 = st.columns([1.5, 3, 3, 3], gap="small")
+    # פריסה אופקית של התווית הראשית ו-3 זוגות של כותרת ותיבה נפתחת
+    f_title, l1, c1, l2, c2, l3, c3 = st.columns([1.5, 1.2, 2.5, 1.2, 2.8, 1.2, 3.2], gap="small")
     
     with f_title:
-        # כותרת האזור מיושרת לשורה
         st.markdown("<div style='padding-top: 10px; font-weight: 700; font-size: 1.1em;'>🎯 סינון נתונים:</div>", unsafe_allow_html=True)
 
-    with f_col1:
-        sel_period = st.selectbox("ימי מדידה:", ["אמצע שבוע", "סוף שבוע"], index=0, label_visibility="visible")
+    with l1:
+        st.markdown("<div style='padding-top: 12px; font-weight: 600; color: #5f6368; font-size: 14px;'>ימי מדידה:</div>", unsafe_allow_html=True)
+    with c1:
+        sel_period = st.selectbox("", ["אמצע שבוע", "סוף שבוע"], index=0, label_visibility="collapsed")
     
-    with f_col2:
+    with l2:
+        st.markdown("<div style='padding-top: 12px; font-weight: 600; color: #5f6368; font-size: 14px;'>גל מחקר:</div>", unsafe_allow_html=True)
+    with c2:
         if sel_period == "אמצע שבוע":
             waves = ["גל 19 במאי", "גל 25 במאי", "חיבור שני הגלים"]
         else:
             waves = ["גל 17 במאי", "גל 31 במאי", "חיבור שני הגלים"]
-        sel_wave = st.selectbox("גל מחקר:", waves, index=2, label_visibility="visible")
+        sel_wave = st.selectbox("", waves, index=2, label_visibility="collapsed")
     
-    with f_col3:
+    with l3:
+        st.markdown("<div style='padding-top: 12px; font-weight: 600; color: #5f6368; font-size: 14px;'>פילוח דמוגרפי:</div>", unsafe_allow_html=True)
+    with c3:
         if sel_wave == "חיבור שני הגלים":
             df_w = df[(df['period'] == sel_period) & (df['wave'] == sel_wave)]
             opts = df_w.apply(
@@ -66,14 +71,14 @@ with st.container(border=True):
             ).unique()
             
             default_idx = list(opts).index("כללי") if "כללי" in opts else 0
-            sel_demo = st.selectbox("פילוח דמוגרפי:", opts, index=default_idx, label_visibility="visible")
+            sel_demo = st.selectbox("", opts, index=default_idx, label_visibility="collapsed")
             
             if sel_demo == "כללי":
                 cat, val = "כללי", "סהכ"
             else:
                 cat, val = sel_demo.split(" - ", 1)
         else:
-            st.selectbox("פילוח דמוגרפי:", ["כללי (זמין בחיבור גלים)"], disabled=True, label_visibility="visible")
+            st.selectbox("", ["כללי (זמין בחיבור הגלים)"], disabled=True, label_visibility="collapsed")
             cat, val = "כללי", "סהכ"
 
 df_filtered = df[(df['period'] == sel_period) & (df['wave'] == sel_wave) & (df['demo_category'] == cat) & (df['demo_value'] == val)]
