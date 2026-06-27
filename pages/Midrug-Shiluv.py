@@ -5,19 +5,21 @@ import os
 
 st.set_page_config(layout="wide", page_title="השוואת מדרוג ושילוב")
 
-# סגנון קבוע ודריסה ספציפית לתרשים כדי שהטקסטים יוצגו בצד שמאל
+# סגנון קבוע ודריסה ספציפית לתרשים כדי למנוע בריחת טקסטים
 st.markdown("""
 <style>
     * {direction: rtl!important; text-align: right!important;}
     .stRadio > div {padding:1.5rem;}
     
-    /* דריסת כיווניות עבור אזור התרשים בלבד למניעת בריחת טקסטים */
+    /* דריסת כיווניות עבור אזור התרשים בלבד */
     div[data-testid="stPlotlyChart"] * {
         direction: ltr !important;
         text-align: left !important;
+        unicode-bidi: isolate !important;
     }
     div[data-testid="stPlotlyChart"] {
         direction: ltr !important;
+        text-align: left !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -72,8 +74,8 @@ with chart_col:
         if labels:
             fig = go.Figure()
             
-            # עטיפה להצגת טקסט ארוך במרווח משמאל לתרשים
-            wrapped_labels = [f"<span style='display: inline-block; width: 260px; white-space: normal; text-align: left;'>{lbl}</span>" for lbl in labels]
+            # עטיפה להצגת טקסט ארוך במרווח מימין לתרשים (ללא חיתוך)
+            wrapped_labels = [f"<span style='display: inline-block; width: 260px; white-space: normal; text-align: right;'>{lbl}</span>" for lbl in labels]
             
             # קווים מקווקווים המחברים בין הנקודות
             for i, ans in enumerate(labels):
@@ -89,8 +91,8 @@ with chart_col:
                         line=dict(color="#d1d5db", width=2, dash="dot"), showlegend=False, hoverinfo="skip"
                     ))
             
-            # הוספת הנקודות והטקסטים בצורה חכמה (הנמוך מימין, הגבוה משמאל)
-            def add_points(source_filter, source_name, color, is_shiluv):
+            # הוספת הנקודות והטקסטים (הנמוך תמיד משמאל לנקודה, הגבוה מימין לנקודה)
+            def add_points(source_filter, source_name, color):
                 x_vals, y_vals, hover_vals, txt_vals, txt_pos = [], [], [], [], []
                 
                 for i, ans in enumerate(labels):
@@ -109,9 +111,9 @@ with chart_col:
                         
                         if s_val != -1 and m_val != -1:
                             if val == min(s_val, m_val):
-                                txt_pos.append("middle right")
-                            else:
                                 txt_pos.append("middle left")
+                            else:
+                                txt_pos.append("middle right")
                         else:
                             txt_pos.append("middle center")
                     else:
@@ -122,37 +124,37 @@ with chart_col:
                 fig.add_trace(go.Scatter(
                     x=x_vals, y=y_vals, mode="markers+text", name=source_name,
                     marker=dict(color=color, size=14, line=dict(color='white', width=2)),
-                    text=txt_vals, textfont=dict(size=12, color=color),
+                    text=txt_vals, textfont=dict(size=12, color=color, weight="bold"),
                     textposition=txt_pos, hovertemplate=hover_vals
                 ))
 
-            add_points('שילוב', 'סקר שילוב', '#2563eb', True)
-            add_points('מדרוג', 'הוועדה למדרוג', '#ea580c', False)
+            add_points('שילוב', 'סקר שילוב', '#2563eb')
+            add_points('מדרוג', 'הוועדה למדרוג', '#ea580c')
 
             v_all = plot_df['percentage'].dropna().tolist()
             mx = max(v_all, default=100)
             
             fig.update_layout(
-                margin=dict(l=280, r=40, t=40, b=100), # מרווחים מותאמים: צד שמאל מוגדל משמעותית למניעת חיתוך תשובות
+                margin=dict(l=280, r=40, t=60, b=100), # מרווח עליון (t) מוגדל כדי לפנות מקום למקרא שמעל הגרף
                 paper_bgcolor='rgba(0,0,0,0)', 
                 plot_bgcolor='rgba(0,0,0,0)',
                 height=max(450, len(labels)*100),
                 legend=dict(
                     orientation="h", 
-                    y=-0.35, 
+                    y=1.15, # מקרא ממוקם כעת בחלק העליון מעל התרשים
                     x=0.5, 
                     xanchor="center"
                 ),
                 xaxis=dict(
                     side="top", 
-                    range=[0, mx * 1.3], # מגדיל את טווח ציר ה-X פרופורציונלית למניעת חלל ריק וחיתוך
+                    range=[0, mx * 1.3], 
                     showgrid=True, 
                     gridcolor="#f3f4f6", 
                     zeroline=False, 
                     ticksuffix="%"
                 ),
                 yaxis=dict(
-                    side="left", # התשובות מוצגות בצד שמאל
+                    side="left", 
                     categoryorder="array", 
                     categoryarray=wrapped_labels[::-1],
                     tickfont=dict(size=12, weight="bold")
