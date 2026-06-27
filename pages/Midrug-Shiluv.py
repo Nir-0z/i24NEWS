@@ -214,7 +214,7 @@ with chart_col:
             # עטיפת התשובות כך שיוכלו לרדת למספר שורות בציר ה-X (רוחב עמודה כ-150 פיקסלים)
             wrapped_labels = [f"<span style='display: inline-block; width: 150px; white-space: normal; text-align: center;'>{lbl}</span>" for lbl in labels]
             
-            # שרטוט הקווים המחברים (עכשיו אנכיים: x קבוע, y משתנה בין שני הערכים)
+            # שרטוט הקווים המחברים (אנכיים) רק לתשובות שקיימות בשני המקורות
             for i, ans in enumerate(labels):
                 s_row = plot_df[(plot_df['answer_text'] == ans) & (plot_df['source'] == 'שילוב')]
                 m_row = plot_df[(plot_df['answer_text'] == ans) & (plot_df['source'] == 'מדרוג')]
@@ -228,25 +228,7 @@ with chart_col:
                         line=dict(color="#000", width=2), showlegend=False, hoverinfo="skip"
                     ))
             
-            # הוספת הנקודות והטקסטים (x הוא התשובה, y הוא האחוז)
-            def add_points(source_filter, source_name):
-                x_vals, y_vals, hover_vals, txt_vals, txt_pos = [], [], [], [], []
-                
-                for i, ans in enumerate(labels):
-                s_row = plot_df[(plot_df['answer_text'] == ans) & (plot_df['source'] == 'שילוב')]
-                m_row = plot_df[(plot_df['answer_text'] == ans) & (plot_df['source'] == 'מדרוג')]
-                
-                s_v = s_row['percentage'].values[0] if not s_row.empty else None
-                m_v = m_row['percentage'].values[0] if not m_row.empty else None
-                
-                # מציגים קו רק אם יש נתון מקביל בשני המקורות
-                if s_v is not None and m_v is not None:
-                    fig.add_trace(go.Scatter(
-                        x=[wrapped_labels[i], wrapped_labels[i]], y=[m_v, s_v], mode="lines", 
-                        line=dict(color="#000", width=2), showlegend=False, hoverinfo="skip"
-                    ))
-            
-            # הוספת הנקודות והטקסטים רק לתשובות הקיימות בשני המקורות
+            # הוספת הנקודות והטקסטים רק לתשובות שקיימות בשני המקורות
             def add_points(source_filter, source_name):
                 x_vals, y_vals, hover_vals, txt_vals, txt_pos = [], [], [], [], []
                 
@@ -257,7 +239,6 @@ with chart_col:
                     s_val = plot_df[(plot_df['answer_text'] == ans) & (plot_df['source'] == 'שילוב')]['percentage'].values[0] if not plot_df[(plot_df['answer_text'] == ans) & (plot_df['source'] == 'שילוב')].empty else None
                     m_val = plot_df[(plot_df['answer_text'] == ans) & (plot_df['source'] == 'מדרוג')]['percentage'].values[0] if not plot_df[(plot_df['answer_text'] == ans) & (plot_df['source'] == 'מדרוג')].empty else None
                     
-                    # מוסיפים לתרשים רק תשובות שיש להן נתון מקביל בשני המקורות
                     if s_val is not None and m_val is not None:
                         if val is not None:
                             val = round(val, 1)
@@ -280,9 +261,9 @@ with chart_col:
                             txt_pos.append("bottom center")
                         else:
                             txt_pos.append("top center")
-                        
+                            
                 color_map = {'סקר שילוב': '#2563eb', 'הוועדה למדרוג': '#ea580c'}
-                if x_vals: # מונע הוספת עקומות ריקות אם אין התאמות
+                if x_vals:
                     fig.add_trace(go.Scatter(
                         x=x_vals, y=y_vals, mode="markers+text", name=source_name,
                         marker=dict(color=color_map.get(source_name, '#000'), size=14, line=dict(color='white', width=2)),
@@ -306,24 +287,24 @@ with chart_col:
             # ----------------------------------------------------------------------
             
             fig.update_layout(
-                margin=dict(l=60, r=40, t=60, b=150), # מרווח מוגדל למטה להכיל את התשובות היורדות לשורות
+                margin=dict(l=60, r=40, t=60, b=150), 
                 paper_bgcolor='rgba(0,0,0,0)', 
                 plot_bgcolor='rgba(0,0,0,0)',
                 height=550,
                 legend=dict(
                     orientation="h", 
-                    y=-0.3, # הזזת המקרא למטה כדי שלא יסתיר
+                    y=-0.3, 
                     x=0.5, 
                     xanchor="center"
                 ),
                 xaxis=dict(
-                    side="bottom", # התשובות מוצגות כעת בתחתית
+                    side="bottom", 
                     categoryorder="array", 
                     categoryarray=wrapped_labels,
                     tickfont=dict(size=11, weight="bold")
                 ),
                 yaxis=dict(
-                    side="left", # האחוזים עולים כלפי מעלה בצד שמאל
+                    side="left", 
                     range=[-2, my],
                     showgrid=True, 
                     gridcolor="#f3f4f6", 
