@@ -57,35 +57,39 @@ def load_data():
 df = load_data()
 st.title("📊 השוואת מדרוג מול סקר שילוב")
 
-# אזור הפילטרים - מותאם בדיוק לרוחב תפריט "בחירת שאלה" שמוגדר כ-menu_col
+# אזור הפילטרים - חלוקה מדויקת המקצה עמודה לכותרת, ועמודה נפרדת לפילטרים
 with st.container(border=True):
-    # חלוקה מדויקת המקצה עמודה נפרדת לתווית וקומבו-בוקס צמודים מימין לשמאל
-    c1, c2, c3, c4, c5, c6, c7 = st.columns([1.8, 1.2, 2.8, 1.0, 2.8, 1.3, 3.4])
+    title_col, filters_col = st.columns([1.1, 3.6])
     
-    c1.markdown("### 🎯 סינון נתונים")
-    
-    c2.write("")
-    c2.write("ימי מדידה:")
-    sel_p = c3.selectbox("", ["אמצע שבוע", "סוף שבוע"], label_visibility="collapsed")
-    
-    c4.write("")
-    c4.write("גל מחקר:")
-    waves = ["גל 19 במאי", "גל 25 במאי", "חיבור שני הגלים"] if sel_p == "אמצע שבוע" else ["גל 17 במאי", "גל 31 במאי", "חיבור שני הגלים"]
-    sel_w = c5.selectbox("", waves, index=2, label_visibility="collapsed")
-    
-    c6.write("")
-    c6.write("פילוח דמוגרפי:")
-    if sel_w == "חיבור שני הגלים":
-        opts = df[df['wave'] == "חיבור שני הגלים"].apply(lambda x: "כללי" if x['demo_category'] == "כללי" else f"{x['demo_category']} - {x['demo_value']}", axis=1).unique()
-        sel_d = c7.selectbox("", opts, index=list(opts).index("כללי") if "כללי" in opts else 0, label_visibility="collapsed")
-        cat, val = ("כללי", "סהכ") if sel_d == "כללי" else sel_d.split(" - ", 1)
-    else:
-        c7.selectbox("", ["כללי (זמין בחיבור הגלים)"], disabled=True, label_visibility="collapsed")
-        cat, val = "כללי", "סהכ"
+    with title_col:
+        st.markdown("### 🎯 סינון נתונים")
+        
+    with filters_col:
+        # פריסת הפילטרים כך שיישבו זה לצד זה באותה השורה בצורה מרווחת
+        f1, f2, f3, f4, f5, f6 = st.columns([1.2, 2.8, 1.2, 2.8, 1.5, 3.5])
+        
+        f1.write("")
+        f1.write("ימי מדידה:")
+        sel_p = f2.selectbox("", ["אמצע שבוע", "סוף שבוע"], label_visibility="collapsed")
+        
+        f3.write("")
+        f3.write("גל מחקר:")
+        waves = ["גל 19 במאי", "גל 25 במאי", "חיבור שני הגלים"] if sel_p == "אמצע שבוע" else ["גל 17 במאי", "גל 31 במאי", "חיבור שני הגלים"]
+        sel_w = f4.selectbox("", waves, index=2, label_visibility="collapsed")
+        
+        f5.write("")
+        f5.write("פילוח דמוגרפי:")
+        if sel_w == "חיבור שני הגלים":
+            opts = df[df['wave'] == "חיבור שני הגלים"].apply(lambda x: "כללי" if x['demo_category'] == "כללי" else f"{x['demo_category']} - {x['demo_value']}", axis=1).unique()
+            sel_d = f6.selectbox("", opts, index=list(opts).index("כללי") if "כללי" in opts else 0, label_visibility="collapsed")
+            cat, val = ("כללי", "סהכ") if sel_d == "כללי" else sel_d.split(" - ", 1)
+        else:
+            f6.selectbox("", ["כללי (זמין בחיבור הגלים)"], disabled=True, label_visibility="collapsed")
+            cat, val = "כללי", "סהכ"
 
 df_f = df[(df['period'] == sel_p) & (df['wave'] == sel_w) & (df['demo_category'] == cat) & (df['demo_value'] == val)]
 
-# אזור התצוגה - תפריט לצד הגרף (התפריט ושורת הסינון מעליו כעת באותו רוחב מושלם)
+# אזור התצוגה - תפריט לצד הגרף
 q_list = df_f['question_text'].unique().tolist()
 if not q_list: 
     st.warning("אין נתונים עבור הסינון שנבחר.")
@@ -206,6 +210,4 @@ with chart_col:
                     tickfont=dict(size=12, weight="bold")
                 )
             )
-            st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
-        else:
-            st.info("אין נתונים להצגת תרשים עבור שאלה זו.")
+            st.plotly_chart(fig, use_container_width=True, config={'displayMode
