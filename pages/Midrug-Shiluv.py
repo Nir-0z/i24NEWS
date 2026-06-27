@@ -277,7 +277,7 @@ with chart_col:
                 height=400,
                 autosize=True,
                 bargap=0.5,
-                margin=dict(l=125, r=0, t=0, b=0),
+                margin=dict(l=125, r=20, t=20, b=0),
                 paper_bgcolor='rgba(0,0,0,0)',
                 plot_bgcolor='rgba(0,0,0,0)',
                 showlegend=True,
