@@ -15,6 +15,16 @@ st.markdown("""
     .stRadio label {
         padding: 15px 0 !important;
         border-bottom: 1px solid #f3f4f6;
+        display: flex !important;
+        align-items: center !important;
+        flex-direction: row-reverse !important; /* היפוך כיוון בתוך השורה כדי שהעיגול יהיה מימין לטקסט */
+        justify-content: flex-start !important;
+    }
+    
+    /* הוספת מרווח בין כפתור הבחירה העגול (ה-input) לבין הטקסט שצמוד אליו */
+    .stRadio label input[type="radio"] {
+        margin-left: 15px !important; /* מרחיק את העיגול שמאלה מהטקסט */
+        margin-right: 0 !important;
     }
     
     /* הרחקת כותרת/נוסח השאלה מכפתור הבחירה הראשון ברשימה */
