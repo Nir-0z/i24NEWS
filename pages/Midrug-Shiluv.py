@@ -77,12 +77,12 @@ with st.container(border=True):
             sel_p = st.selectbox("ימי מדידה:", ["אמצע שבוע", "סוף שבוע"])
             
         with f2:
-            waves = ["גל 19 במאי", "גל 25 במאי", "חיבור שני הגלים"] if sel_p == "אמצע שבוע" else ["גל 17 במאי", "גל 31 במאי", "חיבור שני הגלים"]
+            waves = ["גל 19 במאי", "גל 25 במאי", "ממוצע שני הגלים"] if sel_p == "אמצע שבוע" else ["גל 17 במאי", "גל 31 במאי", "ממוצע שני הגלים"]
             sel_w = st.selectbox("גל מחקר:", waves, index=2)
             
         with f3:
-            if sel_w == "חיבור שני הגלים":
-                opts = df[df['wave'] == "חיבור שני הגלים"].apply(lambda x: "כללי" if x['demo_category'] == "כללי" else f"{x['demo_category']} - {x['demo_value']}", axis=1).unique()
+            if sel_w == "ממוצע שני הגלים":
+                opts = df[df['wave'] == "ממוצע שני הגלים"].apply(lambda x: "כללי" if x['demo_category'] == "כללי" else f"{x['demo_category']} - {x['demo_value']}", axis=1).unique()
                 sel_d = st.selectbox("פילוח דמוגרפי:", opts, index=list(opts).index("כללי") if "כללי" in opts else 0)
                 cat, val = ("כללי", "סהכ") if sel_d == "כללי" else sel_d.split(" - ", 1)
             else:
@@ -112,7 +112,7 @@ with chart_col:
     with st.container(border=True):
         if labels:
             # מראה מיקום בטקסט קטן ובולד בראש הקונטיינר
-            demo_display = sel_d if 'sel_d' in locals() and sel_w == "חיבור שני הגלים" else "כללי"
+            demo_display = sel_d if 'sel_d' in locals() and sel_w == "ממוצע שני הגלים" else "כללי"
             st.markdown(f"<p style='font-size:12px; font-weight:bold; color:#6b7280; margin-bottom:4px;'>{sel_p} &nbsp; &gt; &nbsp; {sel_w} &nbsp; &gt; &nbsp; {demo_display}</p>", unsafe_allow_html=True)
             
             st.markdown(f"### {sel_q}")
