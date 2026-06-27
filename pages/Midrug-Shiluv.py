@@ -275,11 +275,25 @@ with chart_col:
                     textposition=txt_pos, hovertemplate=hover_vals
                 ))
 
-            add_points('שילוב', 'סקר שילוב')
+add_points('שילוב', 'סקר שילוב')
             add_points('מדרוג', 'הוועדה למדרוג')
 
-            v_all = plot_df['percentage'].dropna().tolist()
-            mx = max(v_all, default=100)
+            # --- חישוב דינמי ומדויק של התקרה לפי הערך הגבוה ביותר שמוצג בפועל ---
+            # איסוף כל הערכים המספריים של שתי העקומות יחד
+            all_plotted_values = []
+            for trace in fig.data:
+                if trace.x:
+                    # סינון של ערכים ריקים או תווית ה־-10 של הציר ההתחלתי
+                    valid_x = [val for val in trace.x if val is not None and val >= 0]
+                    if valid_x:
+                        all_plotted_values.extend(valid_x)
+            
+            # מציאת הערך הגבוה ביותר מבין הנקודות ששורטטו בפועל
+            true_max = max(all_plotted_values, default=100)
+            
+            # התאמת התקרה כך שתהיה מרווחת ב־15% מהערך הגבוה ביותר
+            mx = true_max * 1.15
+            # ----------------------------------------------------------------------
             
             fig.update_layout(
                 margin=dict(l=280, r=40, t=60, b=100), 
@@ -292,9 +306,9 @@ with chart_col:
                     x=0.5, 
                     xanchor="center"
                 ),
-               xaxis=dict(
+                xaxis=dict(
                     side="top", 
-                    range=[-2, mx * 1.15], 
+                    range=[-10, mx], # מוזן ישירות לתקרה המותאמת
                     showgrid=True, 
                     gridcolor="#f3f4f6", 
                     zeroline=False, 
