@@ -10,11 +10,7 @@ st.markdown("""
 <style>
     * {direction: rtl!important; text-align: right!important;}
     .stRadio label div[data-testid="stMarkdownContainer"] p {font-size: 15px !important;}
-    .stRadio label {
-        padding: 15px 0 !important; border-bottom: 1px solid #f3f4f6;
-        display: flex !important; align-items: center !important;
-        flex-direction: row !important; justify-content: flex-start !important;
-    }
+    .stRadio label { padding: 15px 0 !important; border-bottom: 1px solid #f3f4f6; display: flex !important; align-items: center !important; flex-direction: row !important; justify-content: flex-start !important }
     .stRadio label input[type="radio"] {margin-left: 0 !important; margin-right: 5px !important;}
     .stRadio label div[data-testid="stMarkdownContainer"] {margin-right: 15px !important;}
     div.row-widget.stRadio > div > label:first-of-type {margin-bottom: 10px;}
@@ -23,8 +19,8 @@ st.markdown("""
     }
     
     /* עיצובים גלובליים לטבלאות שהוספו בהמשך */
-    .custom-table { width: 100% !important; border-collapse: collapse !important; margin-top: 15px !important; margin-bottom: 10px !important; font-family: inherit !important; direction: ltr !important; }
-    .custom-th, .custom-td { border: 1px solid #e5e7eb !important; padding: 12px 8px !important; text-align: center !important; vertical-align: middle !important; direction: ltr !important; box-sizing: border-box !important; }
+    .custom-table { width: 100% !important; border-collapse: collapse !important; margin-top: 15px !important; margin-bottom: 10px !important; font-family: inherit !important; direction: ltr !important; table-layout: fixed !important; }
+    .custom-th, .custom-td { border: 1px solid #e5e7eb !important; padding: 12px 8px !important; text-align: center !important; vertical-align: middle !important; direction: ltr !important; box-sizing: border-box !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; }
     .custom-th { background-color: #f3f4f6 !important; font-weight: bold !important; color: #1f2937 !important; font-size: 14px !important; }
     .pos-val { color: green !important; font-weight: bold !important; }
     .neg-val { color: red !important; font-weight: bold !important; }
