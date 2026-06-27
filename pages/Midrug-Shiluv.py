@@ -118,7 +118,7 @@ with chart_col:
             st.markdown(f"### {sel_q}")
             st.write("")
             
-            # --- בניית הטבלה (תשובות בשורה 1, פער בשורה 2 ללא תווית עמודה וללא אייקון) ---
+            # --- בניית הטבלה (תשובות בשורה 1, פער בשורה 2 ממורכז וללא אייקונים) ---
             table_data = {}
             for ans in labels:
                 s_row = plot_df[(plot_df['answer_text'] == ans) & (plot_df['source'] == 'שילוב')]
@@ -136,26 +136,55 @@ with chart_col:
             if table_data:
                 st.markdown("##### עד כמה הנתונים נמוכים/גבוהים ביחס למדרוג")
                 
-                # יצירת DataFrame שבו השורות הן התשובות והעמודה היא הפער
-                df_diff = pd.DataFrame.from_dict(table_data, orient='index', columns=[''])
+                # יצירת טבלת HTML עם יישור מלא למרכז באמצעות CSS
+                html_table = """
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse; font-family: sans-serif; margin-bottom: 20px;">
+                        <thead>
+                            <tr style="background-color: #f3f4f6; border-bottom: 2px solid #e5e7eb;">
+                """
                 
-                # טרנספוזיציה כדי שהתשובות יהיו עמודות (שורה ראשונה בטבלה), השורה השנייה תהיה הערכים
-                df_diff_transposed = df_diff.T
+                # שורה 1: התשובות
+                for ans in table_data.keys():
+                    html_table += f"""
+                                <th style="padding: 12px; text-align: center; font-weight: bold; color: #374151; border: 1px solid #e5e7eb;">
+                                    {ans}
+                                </th>
+                    """
                 
-                # פונקציית עיצוב עם CSS ליישור התאים והטקסט לאמצע
-                def style_table_cells(val):
+                html_table += """
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr style="background-color: #ffffff; border-bottom: 1px solid #e5e7eb;">
+                """
+                
+                # שורה 2: הפערים עם צבעים
+                for val in table_data.values():
                     if val > 0:
-                        return 'color: green; font-weight: bold; text-align: center !important;'
+                        color_style = "color: green; font-weight: bold;"
+                        val_str = f"+{val:.1f}%"
                     elif val < 0:
-                        return 'color: red; font-weight: bold; text-align: center !important;'
-                    return 'color: black; text-align: center !important;'
-
-                def format_diff(val):
-                    return f"+{val:.1f}%" if val > 0 else f"{val:.1f}%"
-
-                # החלת העיצוב והצגת הטבלה
-                styled_table = df_diff_transposed.style.map(style_table_cells).format(format_diff)
-                st.dataframe(styled_table, use_container_width=True, hide_index=True)
+                        color_style = "color: red; font-weight: bold;"
+                        val_str = f"{val:.1f}%"
+                    else:
+                        color_style = "color: black; font-weight: bold;"
+                        val_str = f"{val:.1f}%"
+                        
+                    html_table += f"""
+                                <td style="padding: 12px; text-align: center; {color_style} border: 1px solid #e5e7eb;">
+                                    {val_str}
+                                </td>
+                    """
+                    
+                html_table += """
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                """
+                
+                st.markdown(html_table, unsafe_allow_html=True)
                 st.write("")
             # --------------------------------------------------------
             
