@@ -11,13 +11,7 @@ st.set_page_config(layout="wide", page_title="השוואת מדרוג ושילו
 # ==========================================
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700&display=swap');
-    
-    * {
-        font-family: 'Assistant', sans-serif !important;
-        direction: rtl !important;
-        text-align: right !important;
-    }
+* {direction:rtl!important; text-align:right!important;}
 </style>
 """, unsafe_allow_html=True)
 
