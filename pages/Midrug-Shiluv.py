@@ -359,64 +359,17 @@ if sel_w == "ממוצע שני הגלים" and has_i24:
                 t_side, c_side = st.columns([1, 2.5])
                 
                 with t_side:
-                    # בניית טבלת LTR אנכית
-                    demo_html = """
-                    <style>
-                        .demo-table {
-                            width: 100% !important;
-                            border-collapse: collapse !important;
-                            font-family: inherit !important;
-                            direction: ltr !important;
-                            margin-top: 0px !important;
-                            margin-bottom: 20px !important;
-                        }
-                        .demo-th, .demo-td {
-                            border: 1px solid #e5e7eb !important;
-                            padding: 12px 6px !important;
-                            text-align: center !important;
-                            vertical-align: middle !important;
-                            direction: ltr !important;
-                            box-sizing: border-box !important;
-                        }
-                        .demo-th {
-                            background-color: #f3f4f6 !important;
-                            font-weight: bold !important;
-                            color: #1f2937 !important;
-                            font-size: 13px !important;
-                        }
-                        .d-pos { color: green !important; font-weight: bold !important; font-size: 13px; }
-                        .d-neg { color: red !important; font-weight: bold !important; font-size: 13px; }
-                        .d-zero { color: #374151 !important; font-weight: bold !important; font-size: 13px; }
-                        .d-text { font-size: 13px !important; color: #1f2937 !important; text-align: left !important; }
-                    </style>
-                    <table class="demo-table">
-                        <thead>
-                            <tr>
-                                <th class="demo-th" style="width: 30%;">פער</th>
-                                <th class="demo-th" style="width: 70%;">דמוגרפיה</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                    """
-                    for d_lbl, d_diff in demo_table_data:
-                        if d_diff > 0:
-                            val_str = f"+{d_diff:.1f}%"
-                            val_class = "d-pos"
-                        elif d_diff < 0:
-                            val_str = f"{d_diff:.1f}%"
-                            val_class = "d-neg"
-                        else:
-                            val_str = f"{d_diff:.1f}%"
-                            val_class = "d-zero"
-                            
-                        demo_html += f"""
-                            <tr>
-                                <td class="demo-td {val_class}">{val_str}</td>
-                                <td class="demo-td d-text">{d_lbl}</td>
-                            </tr>
-                        """
-                    demo_html += "</tbody></table>"
-                    st.markdown(demo_html, unsafe_allow_html=True)
+                    # יצירת טבלה פנימית של פנדס, מותאמת אנכית וללא שגיאות קוד במסך
+                    demo_df_table = pd.DataFrame({
+                        "פער": [f"+{d_diff:.1f}%" if d_diff > 0 else f"{d_diff:.1f}%" for _, d_diff in demo_table_data],
+                        "דמוגרפיה": [d_lbl.split(" - ", 1)[1] if " - " in d_lbl else d_lbl for d_lbl, _ in demo_table_data]
+                    })
+                    
+                    st.dataframe(
+                        demo_df_table, 
+                        hide_index=True, 
+                        use_container_width=True
+                    )
                     
                 with c_side:
                     fig_demo = go.Figure()
