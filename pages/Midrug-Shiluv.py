@@ -13,6 +13,7 @@ st.markdown("""
     
     /* מרווח וקו תחתון בין אפשרויות הרדיו */
     .stRadio label {
+        font-size: 15px !important;
         padding: 15px 0 !important;
         border-bottom: 1px solid #f3f4f6;
         display: flex !important;
