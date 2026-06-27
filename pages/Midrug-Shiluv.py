@@ -5,7 +5,7 @@ import os
 
 st.set_page_config(layout="wide", page_title="השוואת מדרוג ושילוב")
 
-# סגנון קבוע בלבד (ללא שינוי)
+# סגנון קבוע ודריסה ספציפית לתרשים כדי שהטקסטים יוצגו בצד שמאל
 st.markdown("""
 <style>
     * {direction: rtl!important; text-align: right!important;}
@@ -46,7 +46,7 @@ with st.container(border=True):
         cat, val = ("כללי", "סהכ") if sel_d == "כללי" else sel_d.split(" - ", 1)
     else:
         cols[6].selectbox("", ["כללי (זמין בחיבור הגלים)"], disabled=True, label_visibility="collapsed")
-        cat, val = ("כללי", "סהכ")
+        cat, val = "כללי", "סהכ"
 
 df_f = df[(df['period'] == sel_p) & (df['wave'] == sel_w) & (df['demo_category'] == cat) & (df['demo_value'] == val)]
 st.divider()
@@ -72,11 +72,11 @@ with chart_col:
         if labels:
             fig = go.Figure()
             
-            # עטיפה בסיסית לטקסט ארוך כדי למנוע חריגה
-            wrapped_labels = [f"<span style='display: inline-block; width: 260px; white-space: normal;'>{lbl}</span>" for lbl in labels]
+            # עטיפה להצגת טקסט ארוך במרווח משמאל לתרשים
+            wrapped_labels = [f"<span style='display: inline-block; width: 260px; white-space: normal; text-align: left;'>{lbl}</span>" for lbl in labels]
             
             # קווים מקווקווים המחברים בין הנקודות
-            for ans in labels:
+            for i, ans in enumerate(labels):
                 s_row = plot_df[(plot_df['answer_text'] == ans) & (plot_df['source'] == 'שילוב')]
                 m_row = plot_df[(plot_df['answer_text'] == ans) & (plot_df['source'] == 'מדרוג')]
                 
@@ -85,7 +85,7 @@ with chart_col:
                 
                 if s_v is not None and m_v is not None:
                     fig.add_trace(go.Scatter(
-                        x=[m_v, s_v], y=[ans, ans], mode="lines", 
+                        x=[m_v, s_v], y=[wrapped_labels[i], wrapped_labels[i]], mode="lines", 
                         line=dict(color="#d1d5db", width=2, dash="dot"), showlegend=False, hoverinfo="skip"
                     ))
             
@@ -93,12 +93,12 @@ with chart_col:
             def add_points(source_filter, source_name, color, is_shiluv):
                 x_vals, y_vals, hover_vals, txt_vals, txt_pos = [], [], [], [], []
                 
-                for ans in labels:
+                for i, ans in enumerate(labels):
                     row = plot_df[(plot_df['answer_text'] == ans) & (plot_df['source'] == source_filter)]
                     val = row['percentage'].values[0] if not row.empty else None
                     
                     x_vals.append(val)
-                    y_vals.append(ans)
+                    y_vals.append(wrapped_labels[i])
                     
                     if val is not None:
                         hover_vals.append(f"<b>{source_name}</b><br>אחוז: {val}%<extra></extra>")
@@ -133,7 +133,7 @@ with chart_col:
             mx = max(v_all, default=100)
             
             fig.update_layout(
-                margin=dict(l=280, r=40, t=40, b=100), # מרווח שמאלי מורחב (L) למניעת חיתוך התשובות
+                margin=dict(l=280, r=40, t=40, b=100), # מרווחים מותאמים: צד שמאל מוגדל משמעותית למניעת חיתוך תשובות
                 paper_bgcolor='rgba(0,0,0,0)', 
                 plot_bgcolor='rgba(0,0,0,0)',
                 height=max(450, len(labels)*100),
@@ -145,7 +145,7 @@ with chart_col:
                 ),
                 xaxis=dict(
                     side="top", 
-                    range=[0, mx * 1.3], # טווח פרופורציונלי הממלא את הכרטיס
+                    range=[0, mx * 1.3], # מגדיל את טווח ציר ה-X פרופורציונלית למניעת חלל ריק וחיתוך
                     showgrid=True, 
                     gridcolor="#f3f4f6", 
                     zeroline=False, 
@@ -154,7 +154,7 @@ with chart_col:
                 yaxis=dict(
                     side="left", # התשובות מוצגות בצד שמאל
                     categoryorder="array", 
-                    categoryarray=labels[::-1],
+                    categoryarray=wrapped_labels[::-1],
                     tickfont=dict(size=12, weight="bold")
                 )
             )
