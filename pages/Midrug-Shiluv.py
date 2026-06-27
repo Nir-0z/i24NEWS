@@ -4,9 +4,6 @@ import plotly.graph_objects as go
 import os
 import math
 
-# ==========================================
-# 1. הגדרת עמוד והזרקת עיצוב Material Design
-# ==========================================
 st.set_page_config(layout="wide", page_title="השוואת מדרוג ושילוב")
 
 st.markdown("""
@@ -23,7 +20,6 @@ st.markdown("""
             background-color: #f8f9fa !important;
         }
         
-        /* דרישה 5: כרטיסים לבנים נקיים לחלוטין */
         div[data-testid="stVerticalBlockBorderWrapper"] {
             background-color: #ffffff !important;
             padding: 24px !important;
@@ -46,7 +42,6 @@ st.markdown("""
             box-shadow: none !important;
         }
         
-        /* דרישה 6: הגדלת טקסט תפריט השאלות ל-16px ומראה נקי */
         div[data-testid="stRadio"] label {
             padding: 12px 16px !important;
             border-radius: 8px !important;
@@ -75,9 +70,6 @@ df = load_data()
 
 st.markdown("<h2>📊 השוואת מדרוג מול סקר שילוב</h2>", unsafe_allow_html=True)
 
-# ==========================================
-# 2. דרישה 1: שורת 3 הפילטרים הקשיחה
-# ==========================================
 with st.container(border=True):
     st.markdown("<p style='font-weight: 700; color: #202124; margin-bottom: 10px; font-size: 1.1em;'>🎯 סינון נתונים</p>", unsafe_allow_html=True)
     col_f1, col_f2, col_f3 = st.columns(3)
@@ -93,25 +85,28 @@ with st.container(border=True):
         selected_wave = st.selectbox("גל מחקר:", wave_options)
         
     with col_f3:
-        # דרישה 1 חלק ב': פילוח דמוגרפי זמין אך ורק ב"חיבור שני הגלים"
         if selected_wave == "חיבור שני הגלים":
             df_demo_src = df[(df['period'] == selected_period) & (df['wave'] == "חיבור שני הגלים")].copy()
-            df_demo_src['demo_display'] = df_demo_src['demo_category'] + " - " + df_demo_src['demo_value']
+            
+            # תיקון תצוגת הפילטר: אם זה "כללי וסהכ" הצג רק "כללי", אחרת הצג את השם המלא
+            df_demo_src['demo_display'] = df_demo_src.apply(
+                lambda x: "כללי" if x['demo_category'] == "כללי" and x['demo_value'] == "סהכ" else f"{x['demo_category']} - {x['demo_value']}", axis=1
+            )
             demo_options = df_demo_src['demo_display'].unique().tolist()
             
-            default_idx = demo_options.index("כללי - סהכ") if "כללי - סהכ" in demo_options else 0
+            default_idx = demo_options.index("כללי") if "כללי" in demo_options else 0
             selected_demo = st.selectbox("פילוח דמוגרפי:", demo_options, index=default_idx)
-            sel_cat, sel_val = selected_demo.split(" - ", 1)
+            
+            if selected_demo == "כללי":
+                sel_cat, sel_val = "כללי", "סהכ"
+            else:
+                sel_cat, sel_val = selected_demo.split(" - ", 1)
         else:
-            st.selectbox("פילוח דמוגרפי:", ["זמין בחיבור הגלים בלבד"], disabled=True)
+            st.selectbox("פילוח דמוגרפי:", ["כללי (פילוח זמין בחיבור הגלים בלבד)"], disabled=True)
             sel_cat, sel_val = "כללי", "סהכ"
 
-# סינון סופי של הנתונים להצגה
 df_filtered = df[(df['period'] == selected_period) & (df['wave'] == selected_wave) & (df['demo_category'] == sel_cat) & (df['demo_value'] == sel_val)]
 
-# ==========================================
-# 3. מבנה מרכזי (טורים)
-# ==========================================
 col_side, col_chart = st.columns([1.3, 2.5], gap="large")
 
 with col_side:
@@ -125,7 +120,6 @@ with col_side:
 
 with col_chart:
     with st.container(border=True):
-        # דרישה 7: נוסח השאלה המלא בבולד מעל הגרף
         st.markdown(f"<p style='font-size: 1.25em; font-weight: 700; color: #202124; margin-bottom: 25px; line-height: 1.4;'>{sel_q}</p>", unsafe_allow_html=True)
         
         plot_df = df_filtered[df_filtered['question_text'] == sel_q]
@@ -161,7 +155,6 @@ with col_chart:
                     s_hover_texts.append("")
             m_hover_texts = [f"<b>מדרוג:</b> {v}%<extra></extra>" if v is not None else "" for v in m_vals]
 
-            # 1. קווים מחברים
             for lbl, s_v, m_v in zip(labels, s_vals, m_vals):
                 if s_v is not None and m_v is not None:
                     fig.add_trace(go.Scatter(
@@ -169,7 +162,6 @@ with col_chart:
                         line=dict(color="#bdc1c6", width=2, dash="dot"), hoverinfo="skip", showlegend=False
                     ))
 
-            # 2. נקודות סקר שילוב (דרישה 3: מספרים משמאל לבולט)
             fig.add_trace(go.Scatter(
                 x=s_vals, y=labels, mode="markers+text", name='סקר שילוב', 
                 marker=dict(color='#1a73e8', size=14, line=dict(color='white', width=2)),
@@ -179,7 +171,6 @@ with col_chart:
                 hovertemplate=s_hover_texts
             ))
             
-            # 3. נקודות מדרוג (דרישה 3: מספרים מימין לבולט)
             fig.add_trace(go.Scatter(
                 x=m_vals, y=labels, mode="markers+text", name='הוועדה למדרוג', 
                 marker=dict(color='#fb8c00', size=14, line=dict(color='white', width=2)),
@@ -197,15 +188,13 @@ with col_chart:
             step = 5 if max_val <= 30 else 10
             clean_ticks = [i for i in range(0, int(safe_max) + step, step)]
 
-            # דרישה 2 ו-4: קיבוע רוחב אחיד מקצה לקצה ותיקון לג'נד
             fig.update_layout(
-                margin=dict(l=10, r=200, t=10, b=80), # r=200 נועל רוחב קבוע ומתוח לציר ה-Y
+                margin=dict(l=10, r=200, t=10, b=80), 
                 paper_bgcolor='rgba(0,0,0,0)',
                 plot_bgcolor='rgba(0,0,0,0)',
                 height=max(400, len(labels) * 55), 
                 font=dict(family="Assistant", color="#3c4043"),
                 
-                # דרישה 4: תיקון מוחלט ללג'נד שלא ייחתך מלמטה
                 legend=dict(
                     orientation="h", y=-0.15, x=0.5, xanchor="center", yanchor="top",
                     font=dict(size=14, color="#5f6368")
