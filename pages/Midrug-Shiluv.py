@@ -91,8 +91,8 @@ with chart_col:
                         line=dict(color="#d1d5db", width=2, dash="dot"), showlegend=False, hoverinfo="skip"
                     ))
             
-            # הוספת הנקודות והטקסטים בהתאמה מלאה (הנמוך מימין לנקודה, הגבוה משמאל לנקודה, או ממורכז במקור יחיד)
-            def add_points(source_filter, source_name, color, is_shiluv_source):
+            # הוספת הנקודות והטקסטים לפי הכללים המעודכנים
+            def add_points(source_filter, source_name, color):
                 x_vals, y_vals, hover_vals, txt_vals, txt_pos = [], [], [], [], []
                 
                 for i, ans in enumerate(labels):
@@ -106,16 +106,18 @@ with chart_col:
                         hover_vals.append(f"<b>{source_name}</b><br>אחוז: {val}%<extra></extra>")
                         txt_vals.append(f"<b>{val}%</b>")
                         
-                        s_val = plot_df[(plot_df['answer_text'] == ans) & (plot_df['source'] == 'שילוב')]['percentage'].values[0] if not plot_df[(plot_df['answer_text'] == ans) & (plot_df['source'] == 'שילוב')].empty else -1
-                        m_val = plot_df[(plot_df['answer_text'] == ans) & (plot_df['source'] == 'מדרוג')]['percentage'].values[0] if not plot_df[(plot_df['answer_text'] == ans) & (plot_df['source'] == 'מדרוג')].empty else -1
+                        s_val = plot_df[(plot_df['answer_text'] == ans) & (plot_df['source'] == 'שילוב')]['percentage'].values[0] if not plot_df[(plot_df['answer_text'] == ans) & (plot_df['source'] == 'שילוב')].empty else None
+                        m_val = plot_df[(plot_df['answer_text'] == ans) & (plot_df['source'] == 'מדרוג')]['percentage'].values[0] if not plot_df[(plot_df['answer_text'] == ans) & (plot_df['source'] == 'מדרוג')].empty else None
                         
-                        if s_val == -1 or m_val == -1:
-                            txt_pos.append("middle right" if is_shiluv_source else "middle left")
+                        # כלל 1: כאשר יש נתון בודד - התוצאה תוצג לימינו
+                        if s_v is None or m_v is None:
+                            txt_pos.append("middle right")
                         else:
-                            if val == min(s_val, m_val):
-                                txt_pos.append("middle right")
-                            else:
+                            # כלל 2: שני נתונים - הנמוך משמאל, הגבוה מימין
+                            if val < min(s_val, m_val): # למקרה שזה הנמוך
                                 txt_pos.append("middle left")
+                            else:
+                                txt_pos.append("middle right")
                     else:
                         hover_vals.append("")
                         txt_vals.append("")
@@ -128,8 +130,8 @@ with chart_col:
                     textposition=txt_pos, hovertemplate=hover_vals
                 ))
 
-            add_points('שילוב', 'סקר שילוב', '#2563eb', True)
-            add_points('מדרוג', 'הוועדה למדרוג', '#ea580c', False)
+            add_points('שילוב', 'סקר שילוב', '#2563eb')
+            add_points('מדרוג', 'הוועדה למדרוג', '#ea580c')
 
             v_all = plot_df['percentage'].dropna().tolist()
             mx = max(v_all, default=100)
@@ -141,13 +143,14 @@ with chart_col:
                 height=max(450, len(labels)*100),
                 legend=dict(
                     orientation="h", 
-                    y=1.15, # מיקום המקרא מעל התרשים
+                    y=1.15, # מקרא מעל התרשים
                     x=0.5, 
                     xanchor="center"
                 ),
                 xaxis=dict(
                     side="top", 
-                    range=[0, mx * 1.3], # ציר ה-X מתחיל מ-0 ומרווח בצורה פרופורציונלית לימין
+                    # כלל 3: הגרף מתחיל במינוס 10 כדי לתת מרווח כאשר הערך קרוב לאפס
+                    range=[-10, mx * 1.3], 
                     showgrid=True, 
                     gridcolor="#f3f4f6", 
                     zeroline=False, 
