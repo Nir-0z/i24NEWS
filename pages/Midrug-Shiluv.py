@@ -21,6 +21,14 @@ st.markdown("""
     div[data-testid="stPlotlyChart"] *, div[data-testid="stPlotlyChart"] {
         direction: ltr !important; text-align: left !important; unicode-bidi: isolate !important;
     }
+    
+    /* עיצובים גלובליים לטבלאות שהוספו בהמשך */
+    .custom-table { width: 100% !important; border-collapse: collapse !important; margin-top: 15px !important; margin-bottom: 10px !important; font-family: inherit !important; direction: ltr !important; }
+    .custom-th, .custom-td { border: 1px solid #e5e7eb !important; padding: 12px 8px !important; text-align: center !important; vertical-align: middle !important; direction: ltr !important; box-sizing: border-box !important; }
+    .custom-th { background-color: #f3f4f6 !important; font-weight: bold !important; color: #1f2937 !important; font-size: 14px !important; }
+    .pos-val { color: green !important; font-weight: bold !important; }
+    .neg-val { color: red !important; font-weight: bold !important; }
+    .zero-val { color: #374151 !important; font-weight: bold !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -125,27 +133,24 @@ with chart_col:
             if table_data:
                 col_count = len(table_data)
                 mean_diff = sum([d for _, d in table_data]) / col_count
-                html_code = f"""
-                <style>
-                    .custom-table {{ width: 100% !important; border-collapse: collapse !important; margin-top: 15px !important; margin-bottom: 10px !important; font-family: inherit !important; direction: ltr !important; }}
-                    .custom-th, .custom-td {{ border: 1px solid #e5e7eb !important; padding: 12px 8px !important; text-align: center !important; vertical-align: middle !important; direction: ltr !important; width: calc(100% / {col_count}) !important; box-sizing: border-box !important; }}
-                    .custom-th {{ background-color: #f3f4f6 !important; font-weight: bold !important; color: #1f2937 !important; font-size: 14px !important; }}
-                    .pos-val {{ color: green !important; font-weight: bold !important; }}
-                    .neg-val {{ color: red !important; font-weight: bold !important; }}
-                    .zero-val {{ color: #374151 !important; font-weight: bold !important; }}
-                </style>
-                <table class="custom-table"><thead><tr>"""
-                for ans, _ in table_data: html_code += f'<th class="custom-th">{ans}</th>'
+                
+                # בניית הטבלה המסתמכת על ה-CSS שרוכז בתחילת הקוד
+                html_code = f'<table class="custom-table"><thead><tr>'
+                for ans, _ in table_data: 
+                    html_code += f'<th class="custom-th" style="width: calc(100% / {col_count}) !important;">{ans}</th>'
                 html_code += "</tr></thead><tbody><tr>"
+                
                 for _, diff in table_data:
                     cls = "pos-val" if diff > 0 else "neg-val" if diff < 0 else "zero-val"
-                    html_code += f'<td class="custom-td {cls}">{"+" if diff > 0 else ""}{diff:.1f}%</td>'
+                    html_code += f'<td class="custom-td {cls}" style="width: calc(100% / {col_count}) !important;">{"+" if diff > 0 else ""}{diff:.1f}%</td>'
                 html_code += "</tr><tr>"
+                
                 for _, diff in table_data:
                     adj = diff - mean_diff
                     cls = "pos-val" if adj > 0 else "neg-val" if adj < 0 else "zero-val"
-                    html_code += f'<td class="custom-td {cls}">{"+" if adj > 0 else ""}{adj:.1f}%</td>'
+                    html_code += f'<td class="custom-td {cls}" style="width: calc(100% / {col_count}) !important;">{"+" if adj > 0 else ""}{adj:.1f}%</td>'
                 html_code += "</tr></tbody></table>"
+                
                 st.markdown(html_code, unsafe_allow_html=True)
         else:
             st.info("אין נתונים להצגת תרשים עבור שאלה זו.")
