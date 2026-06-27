@@ -118,6 +118,35 @@ with chart_col:
             st.markdown(f"### 📋 {sel_q}")
             st.write("")
             
+            # --- בניית הטבלה להשוואת נתונים ---
+            table_data = {}
+            for ans in labels:
+                s_row = plot_df[(plot_df['answer_text'] == ans) & (plot_df['source'] == 'שילוב')]
+                m_row = plot_df[(plot_df['answer_text'] == ans) & (plot_df['source'] == 'מדרוג')]
+                
+                s_v = s_row['percentage'].values[0] if not s_row.empty else None
+                m_v = m_row['percentage'].values[0] if not m_row.empty else None
+                
+                # מציגים רק תשובות שקיימות בשני המקורות
+                if s_v is not None and m_v is not None:
+                    diff = s_v - m_v
+                    # עיצוב ההפרש כך שיוצג עם פלוס/מינוס באחוזים
+                    diff_str = f"+{diff:.1f}%" if diff > 0 else f"{diff:.1f}%"
+                    table_data[ans] = {
+                        "סקר שילוב": f"{s_v:.1f}%",
+                        "ועדת מדרוג": f"{m_v:.1f}%",
+                        "הפרש (שילוב - מדרוג)": diff_str
+                    }
+            
+            # הצגת הטבלה רק אם יש לפחות תשובה אחת עם נתונים לשני המקורות
+            if table_data:
+                st.markdown("##### 🔍 השוואת נתונים (סקר שילוב מול ועדת מדרוג)")
+                # הפיכת המילון ל-DataFrame והצגתו
+                df_table = pd.DataFrame(table_data).T
+                st.table(df_table)
+                st.write("")
+            # ----------------------------------
+            
             fig = go.Figure()
             
             wrapped_labels = [f"<span style='display: inline-block; width: 260px; white-space: normal; text-align: right;'>{lbl}</span>" for lbl in labels]
