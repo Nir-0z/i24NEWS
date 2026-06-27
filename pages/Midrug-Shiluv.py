@@ -306,7 +306,7 @@ with chart_col:
             st.info("אין נתונים להצגת תרשים עבור שאלה זו.")
 
 # ==============================================================================
-# --- כרטיס חדש: טבלה משמאל ותרשים מוטה צירים מימין (מוצג רק בערוצי i24 ובממוצע גלים) ---
+# --- כרטיס חדש: תרשים מוטה צירים ממוקד i24news (ללא טבלה, 100% רוחב) ---
 # ==============================================================================
 has_i24 = any("i24" in ans for ans in labels)
 
@@ -355,89 +355,72 @@ if sel_w == "ממוצע שני הגלים" and has_i24:
                         demo_y_m_vals.append(round(m_v, 1))
 
             if demo_table_data:
-                # פיצול לעמודות: טבלה משמאל, ותרשים מוטה צירים מימין
-                t_side, c_side = st.columns([1, 2.5])
+                fig_demo = go.Figure()
                 
-                with t_side:
-                    # יצירת טבלה פנימית של פנדס, מותאמת אנכית וללא שגיאות קוד במסך
-                    demo_df_table = pd.DataFrame({
-                        "פער": [f"+{d_diff:.1f}%" if d_diff > 0 else f"{d_diff:.1f}%" for _, d_diff in demo_table_data],
-                        "דמוגרפיה": [d_lbl.split(" - ", 1)[1] if " - " in d_lbl else d_lbl for d_lbl, _ in demo_table_data]
-                    })
-                    
-                    st.dataframe(
-                        demo_df_table, 
-                        hide_index=True, 
-                        use_container_width=True
-                    )
-                    
-                with c_side:
-                    fig_demo = go.Figure()
-                    
-                    # קווים מקשרים אופקיים (X משתנה, Y קבוע)
-                    for idx, demo_lbl in enumerate(demo_wrapped_labels):
-                        fig_demo.add_trace(go.Scatter(
-                            x=[demo_y_s_vals[idx], demo_y_m_vals[idx]], y=[demo_lbl, demo_lbl], mode="lines", 
-                            line=dict(color="#000", width=2), showlegend=False, hoverinfo="skip"
-                        ))
-
-                    # הוספת נקודות שילוב
+                # קווים מקשרים אופקיים (X משתנה, Y קבוע)
+                for idx, demo_lbl in enumerate(demo_wrapped_labels):
                     fig_demo.add_trace(go.Scatter(
-                        x=demo_y_s_vals, y=demo_wrapped_labels, mode="markers+text", name="סקר שילוב",
-                        marker=dict(color='#2563eb', size=14, line=dict(color='white', width=2)),
-                        text=[f"<b>{val}%</b>" for val in demo_y_s_vals],
-                        textfont=dict(size=12, color='#2563eb', weight="bold"),
-                        textposition=[
-                            "middle left" if demo_y_s_vals[idx] <= demo_y_m_vals[idx] else "middle right" 
-                            for idx in range(len(demo_wrapped_labels))
-                        ],
-                        hovertemplate="<b>סקר שילוב</b><br>אחוז: %{x}%<extra></extra>"
+                        x=[demo_y_s_vals[idx], demo_y_m_vals[idx]], y=[demo_lbl, demo_lbl], mode="lines", 
+                        line=dict(color="#000", width=2), showlegend=False, hoverinfo="skip"
                     ))
 
-                    # הוספת נקודות מדרוג
-                    fig_demo.add_trace(go.Scatter(
-                        x=demo_y_m_vals, y=demo_wrapped_labels, mode="markers+text", name="הוועדה למדרוג",
-                        marker=dict(color='#ea580c', size=14, line=dict(color='white', width=2)),
-                        text=[f"<b>{val}%</b>" for val in demo_y_m_vals],
-                        textfont=dict(size=12, color='#ea580c', weight="bold"),
-                        textposition=[
-                            "middle right" if demo_y_m_vals[idx] >= demo_y_s_vals[idx] else "middle left" 
-                            for idx in range(len(demo_wrapped_labels))
-                        ],
-                        hovertemplate="<b>הוועדה למדרוג</b><br>אחוז: %{x}%<extra></extra>"
-                    ))
+                # הוספת נקודות שילוב
+                fig_demo.add_trace(go.Scatter(
+                    x=demo_y_s_vals, y=demo_wrapped_labels, mode="markers+text", name="סקר שילוב",
+                    marker=dict(color='#2563eb', size=14, line=dict(color='white', width=2)),
+                    text=[f"<b>{val}%</b>" for val in demo_y_s_vals],
+                    textfont=dict(size=12, color='#2563eb', weight="bold"),
+                    textposition=[
+                        "middle left" if demo_y_s_vals[idx] <= demo_y_m_vals[idx] else "middle right" 
+                        for idx in range(len(demo_wrapped_labels))
+                    ],
+                    hovertemplate="<b>סקר שילוב</b><br>אחוז: %{x}%<extra></extra>"
+                ))
 
-                    all_demo_values = demo_y_s_vals + demo_y_m_vals
-                    demo_max = max(all_demo_values, default=100)
-                    mx_demo = demo_max * 1.15
+                # הוספת נקודות מדרוג
+                fig_demo.add_trace(go.Scatter(
+                    x=demo_y_m_vals, y=demo_wrapped_labels, mode="markers+text", name="הוועדה למדרוג",
+                    marker=dict(color='#ea580c', size=14, line=dict(color='white', width=2)),
+                    text=[f"<b>{val}%</b>" for val in demo_y_m_vals],
+                    textfont=dict(size=12, color='#ea580c', weight="bold"),
+                    textposition=[
+                        "middle right" if demo_y_m_vals[idx] >= demo_y_s_vals[idx] else "middle left" 
+                        for idx in range(len(demo_wrapped_labels))
+                    ],
+                    hovertemplate="<b>הוועדה למדרוג</b><br>אחוז: %{x}%<extra></extra>"
+                ))
 
-                    fig_demo.update_layout(
-                        margin=dict(l=20, r=20, t=20, b=20), # שוליים צדדיים 20-20
-                        paper_bgcolor='rgba(0,0,0,0)', 
-                        plot_bgcolor='rgba(0,0,0,0)',
-                        height=max(250, len(demo_table_data) * 65), # מותאם אנכית לגובה הטבלה
-                        legend=dict(
-                            orientation="h", 
-                            y=1.2, 
-                            x=0.5, 
-                            xanchor="center",
-                            yanchor="top"
-                        ),
-                        xaxis=dict(
-                            side="top", # אחוזים למעלה
-                            range=[-10, mx_demo],
-                            showgrid=True, 
-                            gridcolor="#f3f4f6", 
-                            zeroline=False, 
-                            ticksuffix="%"
-                        ),
-                        yaxis=dict(
-                            side="left", 
-                            categoryorder="array", 
-                            categoryarray=demo_wrapped_labels[::-1],
-                            showticklabels=True,
-                            tickfont=dict(size=11, weight="bold")
-                        )
+                all_demo_values = demo_y_s_vals + demo_y_m_vals
+                demo_max = max(all_demo_values, default=100)
+                mx_demo = demo_max * 1.15
+
+                fig_demo.update_layout(
+                    margin=dict(l=20, r=20, t=20, b=20), # שוליים צדדיים 20-20
+                    paper_bgcolor='rgba(0,0,0,0)', 
+                    plot_bgcolor='rgba(0,0,0,0)',
+                    height=max(250, len(demo_table_data) * 65), # מותאם אנכית לכמות הפילוחים
+                    legend=dict(
+                        orientation="h", 
+                        y=1.2, 
+                        x=0.5, 
+                        xanchor="center",
+                        yanchor="top"
+                    ),
+                    xaxis=dict(
+                        side="top", # אחוזים למעלה
+                        range=[-10, mx_demo],
+                        showgrid=True, 
+                        gridcolor="#f3f4f6", 
+                        zeroline=False, 
+                        ticksuffix="%"
+                    ),
+                    yaxis=dict(
+                        side="left", 
+                        categoryorder="array", 
+                        categoryarray=demo_wrapped_labels[::-1],
+                        showticklabels=True,
+                        tickfont=dict(size=11, weight="bold")
                     )
+                )
 
-                    st.plotly_chart(fig_demo, use_container_width=True, config={'displayModeBar': False})
+                st.plotly_chart(fig_demo, use_container_width=True, config={'displayModeBar': False})
