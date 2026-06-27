@@ -11,20 +11,25 @@ st.markdown("""
 <style>
     * {direction: rtl!important; text-align: right!important;}
     
-    /* מרווח וקו תחתון בין אפשרויות הרדיו, כפתור ימני וטקסט שמאלי */
+    /* מרווח וקו תחתון בין אפשרויות הרדיו */
     .stRadio label {
         padding: 15px 0 !important;
         border-bottom: 1px solid #f3f4f6;
         display: flex !important;
         align-items: center !important;
-        flex-direction: row !important; /* כפתור הרדיו יופיע מימין והטקסט משמאלו */
+        flex-direction: row !important; /* כפתור הרדיו מימין, הטקסט משמאלו */
         justify-content: flex-start !important;
     }
     
-    /* הוספת מרווח בין כפתור הבחירה העגול לטקסט שמופיע משמאלו */
+    /* ריווח כפתור הבחירה העגול והרחקתו שמאלה מהטקסט שצמוד אליו */
     .stRadio label input[type="radio"] {
-        margin-right: 15px !important; /* מרחיק את העיגול ימינה מהקצה, והטקסט יקבל מרווח ממנו */
         margin-left: 0 !important;
+        margin-right: 5px !important; /* מרחק הבסיס מהקצה הימני */
+    }
+    
+    /* הוספת מרווח מפורש בין כפתור הרדיו (העיגול) לבין הטקסט בתוך הלייבל */
+    .stRadio label div[data-testid="stMarkdownContainer"] {
+        margin-right: 15px !important; /* מרחיק את הטקסט שמאלה מהעיגול בצורה מרווחת וברורה */
     }
     
     /* הרחקת כותרת/נוסח השאלה מכפתור הבחירה הראשון ברשימה */
@@ -32,7 +37,7 @@ st.markdown("""
         margin-bottom: 10px;
     }
     
-    /* דריסת כיווניות עבור אזור התרשים בלבד */
+    /* דריסת כיווניות עבור אזור התרשים בלבד למניעת בריחת טקסטים */
     div[data-testid="stPlotlyChart"] * {
         direction: ltr !important;
         text-align: left !important;
