@@ -158,14 +158,14 @@ with chart_col:
                 html_code += "</tr></thead><tbody>"
                 
                 html_code += "<tr>"
-                html_code += f'<td class="custom-td" style="font-weight: bold; background-color: #f9fafb;">שינוי אבסולוטי</td>'
+                html_code += f'<td class="custom-td" style="font-weight: bold; background-color: #f9fafb;">שינוי אבסולוטי - מדרוג פחות סקר</td>'
                 for _, diff in table_data:
                     cls = "pos-val" if diff > 0 else "neg-val" if diff < 0 else "zero-val"
                     html_code += f'<td class="custom-td {cls}">{"+" if diff > 0 else ""}{diff:.1f}%</td>'
                 html_code += "</tr>"
                 
                 html_code += "<tr>"
-                html_code += f'<td class="custom-td" style="font-weight: bold; background-color: #f9fafb;">שינוי מחושב</td>'
+                html_code += f'<td class="custom-td" style="font-weight: bold; background-color: #f9fafb;">שינוי מחושב ביחס להטיה הכללית</td>'
                 for _, diff in table_data:
                     adj_diff = diff - mean_diff
                     cls = "pos-val" if adj_diff > 0 else "neg-val" if adj_diff < 0 else "zero-val"
