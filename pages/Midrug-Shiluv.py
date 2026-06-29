@@ -8,9 +8,14 @@ st.set_page_config(layout="wide", page_title="השוואת מדרוג ושילו
 
 st.markdown("""
 <style>
+    div[data-testid="stVerticalBlock"] {
+    background-color: #f5f7ff;
+    border-radius: 10px;
+    padding: 1rem;
+    }
+    * { direction: rtl!important; text-align: right!important; }
     h3 {margin-bottom:15px!important;}
     .stAlert [data-testid="stMarkdownContainer"] p {font-size:0.8rem!important;}
-    * { direction: rtl!important; text-align: right!important; }
     .stRadio label div[data-testid="stMarkdownContainer"] p { font-size: 15px !important; }
     .stRadio label { padding: 15px 0 !important; border-bottom: 1px solid #f3f4f6; display: flex !important; align-items: center !important; flex-direction: row !important; justify-content: flex-start !important; }
     .stRadio label input[type="radio"] { margin-left: 0 !important; margin-right: 5px !important; }
